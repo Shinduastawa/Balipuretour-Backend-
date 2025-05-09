@@ -10,21 +10,12 @@
 
 // export default firebaseAdmin;
 
-import admin from 'firebase-admin';
-import dotenv from 'dotenv';
-dotenv.config();  // Memuat file .env
+import admin from "firebase-admin";
 
-const firebaseConfig = process.env.FIREBASE_CONFIG;
+const serviceAccount = JSON.parse(process.env.FIREBASE_CONFIG);
 
-if (!firebaseConfig) {
-  console.error('Firebase config not found in .env');
-  process.exit(1);  // Hentikan aplikasi jika config tidak ditemukan
-}
-
-const serviceAccount = JSON.parse(firebaseConfig);
-
-admin.initializeApp({
+const firebaseAdmin = admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-export default admin;
+export default firebaseAdmin;
