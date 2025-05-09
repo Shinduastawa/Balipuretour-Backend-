@@ -17,7 +17,7 @@ const AvailableDates = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "packageTour",
+        model: PackageTour, // Referensi mengarah ke model, bukan tabel
         key: "id_package",
       },
       onDelete: "CASCADE",
