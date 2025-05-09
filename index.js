@@ -100,6 +100,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Sample route
+app.get('/', (req, res) => {
+  res.send('API is running...');
+});
+
 // Koneksi database
 try {
   await db.authenticate();
