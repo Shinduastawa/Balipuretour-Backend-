@@ -1,0 +1,32 @@
+# 👉 Jangan upload folder dependencies
+node_modules/
+
+# 👉 Jangan upload file environment
+.env
+
+# 👉 Log file & debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# 👉 Jangan upload file sistem
+.DS_Store
+Thumbs.db
+
+# 👉 Folder hasil build (kalau nanti pakai bundler)
+dist/
+build/
+
+# 👉 File backup atau temporary
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# 👉 Optional: coverage tools
+coverage/
+
+# Tambahkan ini
+config/serviceAccountKey.json
