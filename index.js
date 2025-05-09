@@ -128,6 +128,7 @@ import fs from "fs";
 import multer from "multer";
 import { fileURLToPath } from "url";
 import AvailableDates from './models/AvailableDatesModel.js'; // Pastikan model di-import
+import PackageTour from "./models/PackgeTourModel.js";
 
 // Load environment variables
 dotenv.config();  // Pindahkan ke atas agar process.env bisa dibaca di bawah
@@ -203,7 +204,9 @@ try {
   console.log("✅ Database Connected");
 
   // Sinkronisasi model AvailableDates (create atau update tabel jika perlu)
+  await PackageTour.sync({ alter: true });  // Gunakan alter untuk menyesuaikan tabel yang sudah ada
   await AvailableDates.sync({ alter: true });
+
   console.log("✅ AvailableDates table is synced.");
 } catch (error) {
   console.error("❌ Database connection error:", error);
