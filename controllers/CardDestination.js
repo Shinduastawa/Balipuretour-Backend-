@@ -180,7 +180,7 @@ export const getGalleryImages = async (req, res) => {
   try {
     // Ambil gambar default berdasarkan ID tertentu
     const defaultGalleryImages = await Galeries.findAll({
-      where: { id: [697, 696, 695, 694, 693, 686] },
+      where: { id: [693, 686, 684, 683, 685] },
       attributes: ["id", "img", "id_package"], // Tambahkan id_package di sini
     });
 
