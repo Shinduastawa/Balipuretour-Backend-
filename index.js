@@ -164,6 +164,8 @@ app.use(express.urlencoded({ extended: true }));  // Middleware untuk URL encodi
 app.use("/public", express.static("public"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));  // Menyediakan akses untuk folder uploads
 app.use(express.static(path.join(__dirname, "public")));  // Static files (misalnya gambar, CSS, dll.)
+app.use('/tour-gallery', express.static(path.join(__dirname, 'public/tour-gallery')));
+app.use('/default', express.static(path.join(__dirname, 'public/default')));
 
 // Buat folder uploads jika belum ada
 const uploadDir = path.join(__dirname, "uploads");
