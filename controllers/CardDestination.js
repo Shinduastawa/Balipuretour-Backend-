@@ -199,7 +199,7 @@ export const getGalleryImages = async (req, res) => {
     const finalGalleryImages = [...defaultGalleryImages, ...latestGalleryImages];
 
 
-    const baseUrl = "http://localhost:5000";
+    const baseUrl = "https://balipuretour-backend-production.up.railway.app";
 
     // Format path gambar agar sesuai URL
     const formattedImages = finalGalleryImages.map((image) => ({
