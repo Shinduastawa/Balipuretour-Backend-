@@ -59,6 +59,7 @@ const PackageTour = db.define(
   },
   {
     freezeTableName: true,
+    tableName: 'packagetour' // ← Ini wajib di-set
   }
 );
 
