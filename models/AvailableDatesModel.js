@@ -33,6 +33,7 @@ const AvailableDates = db.define(
   },
   {
     freezeTableName: true,
+    tableName: 'availabledates' // ← Ini wajib di-set
   }
 );
 
