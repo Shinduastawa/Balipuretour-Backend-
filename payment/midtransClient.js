@@ -1,10 +1,12 @@
-
 import midtransClient from 'midtrans-client';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 let snap = new midtransClient.Snap({
-    isProduction: true, // Ganti ke true jika sudah live
-    serverKey: 'SB-Mid-server-pR556x1VaXnmJQZ9YTE_cxJl',
-    clientKey: 'SB-Mid-client-Aniqdi4-3mCKWtB9'
+  isProduction: true, // Ganti ke false saat development
+  serverKey: process.env.MIDTRANS_SERVER_KEY,
+  clientKey: process.env.MIDTRANS_CLIENT_KEY,
 });
 
 export default snap;
