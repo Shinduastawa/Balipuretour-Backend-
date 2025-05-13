@@ -62,18 +62,9 @@ export const createPayment = async (req, res) => {
       },
     };
 
-    try {
-      const transaction = await snap.createTransaction(parameter);
-      console.log("✅ Transaction Token:", transaction.token);
-      res.json({ token: transaction.token });
-    } catch (error) {
-      console.error("❌ Error createTransaction:", error.message);
-      if (error.ApiResponse) {
-        console.error("❌ Midtrans API Response:", error.ApiResponse);
-      }
-      res.status(500).json({ message: "Failed to create Midtrans transaction" });
-    }
-
+    // 🔥 **Buat transaksi ke Midtrans**
+    const transaction = await snap.createTransaction(parameter);
+    console.log("✅ Transaction Token:", transaction.token);
 
     res.json({ token: transaction.token });
   } catch (error) {
