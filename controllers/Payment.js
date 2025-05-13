@@ -62,14 +62,33 @@ export const createPayment = async (req, res) => {
       },
     };
 
-    // 🔥 **Buat transaksi ke Midtrans**
-    const transaction = await snap.createTransaction(parameter);
-    console.log("✅ Transaction Token:", transaction.token);
+    try {
+      const transaction = await snap.createTransaction(parameter);
+      console.log("✅ Transaction Token:", transaction.token);
+      res.json({ token: transaction.token });
+    } catch (error) {
+      console.error("❌ Error createTransaction:", error.message);
+      if (error.ApiResponse) {
+        console.error("❌ Midtrans API Response:", error.ApiResponse);
+      }
+      res.status(500).json({ message: "Failed to create Midtrans transaction" });
+    }
+
 
     res.json({ token: transaction.token });
   } catch (error) {
     console.error("❌ Error di Backend:", error);
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+
+    // ✅ Tambahkan debug ini
+    if (error.response && error.response.data) {
+      console.error("❌ Midtrans Error Response:", error.response.data);
+    }
+
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: error.message,
+      midtrans_error: error.response?.data || null
+    });
   }
 };
 
