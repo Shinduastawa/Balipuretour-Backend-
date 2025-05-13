@@ -238,7 +238,6 @@ export const getTourById = async (req, res) => {
   }
 };
 
-
 export const getTourGallery = async (req, res) => {
   try {
     const gallery = await Galeries.findAll({ where: { id_package: req.params.id } });
