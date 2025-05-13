@@ -111,12 +111,8 @@ export const updateBookingStatus = async (req, res) => {
         { status: "available" },
         { where: { id_date: booking.id_date } }
       );
-
-      await Inbox.create({
-        type: "booking_canceled",
-        message: `Booking atas nama ${booking.full_name} telah dibatalkan.`,
-      });
     }
+
 
     res.status(200).json({ message: "Status booking berhasil diperbarui", data: booking });
   } catch (error) {
