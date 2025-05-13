@@ -84,6 +84,7 @@ const Booking = db.define(
   },
   {
     freezeTableName: true,
+    tableName: "booking",
   }
 );
 
