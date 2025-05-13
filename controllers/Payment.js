@@ -32,8 +32,7 @@ export const createPayment = async (req, res) => {
 
     // 🔥 **Simpan transaksi ke database sebelum request ke Midtrans**
     await Transaction.create({
-      id_transaction: order_id, // ✅ ID transaksi sesuai format Midtrans
-      order_id, // ✅ Simpan order_id agar bisa dicari saat update status
+      order_id, // ✅ ini simpan string seperti 'order-167-1747118127325'
       id_booking,
       total_price,
       payment_status: "pending",
@@ -46,8 +45,8 @@ export const createPayment = async (req, res) => {
       checkin_date: formattedCheckinDate,
       payment_method,
       payment_numbers,
-
     });
+
 
     // ✅ **Parameter Midtrans**
     let parameter = {
