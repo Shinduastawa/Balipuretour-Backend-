@@ -6,13 +6,7 @@ const Inbox = db.define(
   "Inbox",
   {
     type: {
-      type: DataTypes.ENUM(
-        "user_login",
-        "booking_full",
-        "new_booking",
-        "payment_success",
-        "booking_canceled"
-      ),
+      type: DataTypes.ENUM("user_login", "booking_full", "new_booking", "payment_success"),
       allowNull: false,
     },
     message: {
