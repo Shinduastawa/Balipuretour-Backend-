@@ -10,7 +10,7 @@ dotenv.config();
 // const __dirname = path.dirname(__filename);
 
 const snap = new midtransClient.Snap({
-  isProduction: false,
+  isProduction: true,
   serverKey: process.env.MIDTRANS_SERVER_KEY,
 });
 
