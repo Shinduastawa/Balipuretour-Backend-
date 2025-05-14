@@ -2,15 +2,31 @@ import Booking from "../models/BookingModel.js";
 import PackageTour from "../models/PackgeTourModel.js";
 import Inbox from "../models/InboxModel.js"; // ⬅️ Tambahin ini di atas
 import AvailableDates from "../models/AvailableDatesModel.js";
-
+import Booking from "../models/BookingModel.js";
+import PackageTour from "../models/PackgeTourModel.js";
+import Inbox from "../models/InboxModel.js";
+import AvailableDates from "../models/AvailableDatesModel.js";
+import nodemailer from "nodemailer"; // ✅ Tambahkan ini
 
 // ✅ Buat Booking Baru
 export const createBooking = async (req, res) => {
   try {
-    console.log("🔍 User dari Token:", req.user); // Debug user dari token
+    console.log("🔍 User dari Token:", req.user);
 
-    const { full_name, email, phone_number, id_package, package_name, num_participants, checkin_date, price, price_idr, id_date } = req.body;
-    const user_id = req.user?.id; // Gunakan req.user.id
+    const {
+      full_name,
+      email,
+      phone_number,
+      id_package,
+      package_name,
+      num_participants,
+      checkin_date,
+      price,
+      price_idr,
+      id_date,
+    } = req.body;
+
+    const user_id = req.user?.id;
 
     if (!user_id) {
       console.error("❌ User tidak terautentikasi!");
@@ -37,13 +53,80 @@ export const createBooking = async (req, res) => {
       price_idr,
       id_date,
     });
-    // 🔔 Kirim notifikasi ke Inbox
-    console.log("ID Date yang diterima:", id_date); // Debug
 
+    // 🔔 Tambah ke Inbox
     await Inbox.create({
       type: "new_booking",
       message: `Booking baru dibuat oleh ${full_name} untuk paket "${package_name}".`,
     });
+
+    // 📧 Kirim Email Notifikasi
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: "akun-email@gmail.com",
+      to: "info.balipuretour@gmail.com",
+      subject: `Booking Baru dari ${full_name}`,
+      html: `
+    <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+      <div style="background-color: #4CAF50; color: white; padding: 20px; text-align: center;">
+        <h2>Booking Baru Diterima</h2>
+        <p>Bali Pure Tour</p>
+      </div>
+      <div style="padding: 20px; background-color: #fafafa;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+          <tr>
+            <td style="padding: 8px;"><strong>Nama</strong></td>
+            <td style="padding: 8px;">${full_name}</td>
+          </tr>
+          <tr style="background-color: #f0f0f0;">
+            <td style="padding: 8px;"><strong>Email</strong></td>
+            <td style="padding: 8px;">${email}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px;"><strong>Telepon</strong></td>
+            <td style="padding: 8px;">${phone_number}</td>
+          </tr>
+          <tr style="background-color: #f0f0f0;">
+            <td style="padding: 8px;"><strong>Paket</strong></td>
+            <td style="padding: 8px;">${package_name}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px;"><strong>Tanggal</strong></td>
+            <td style="padding: 8px;">${formattedDate}</td>
+          </tr>
+          <tr style="background-color: #f0f0f0;">
+            <td style="padding: 8px;"><strong>Jumlah Peserta</strong></td>
+            <td style="padding: 8px;">${num_participants}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px;"><strong>Harga</strong></td>
+            <td style="padding: 8px;">${price} (${price_idr} IDR)</td>
+          </tr>
+        </table>
+        <p style="margin-top: 20px; font-size: 14px; color: #666;">Silakan cek dashboard admin untuk melihat detail dan memproses booking ini.</p>
+      </div>
+      <div style="text-align: center; background-color: #f5f5f5; padding: 10px; font-size: 12px; color: #999;">
+        &copy; ${new Date().getFullYear()} Bali Pure Tour. All rights reserved.
+      </div>
+    </div>
+  `,
+    };
+
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.error("❌ Gagal mengirim email:", err);
+      } else {
+        console.log("✅ Email terkirim:", info.response);
+      }
+    });
+
     res.status(201).json({ message: "✅ Booking berhasil!", booking: newBooking });
 
   } catch (error) {
@@ -51,6 +134,7 @@ export const createBooking = async (req, res) => {
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
+
 
 
 // ✅ Ambil Semua Booking
