@@ -49,18 +49,36 @@ export const createPayment = async (req, res) => {
 
 
     // ✅ **Parameter Midtrans**
+    // let parameter = {
+    //   transaction_details: {
+    //     order_id,
+    //     gross_amount: Math.round(total_price) // 🔥 Pastikan total_price tanpa koma
+    //   },
+    //   credit_card: { secure: true },
+    //   customer_details: {
+    //     first_name: full_name.split(" ")[0],
+    //     email,
+    //     phone: phone_number
+    //   },
+    // };
     let parameter = {
       transaction_details: {
         order_id,
-        gross_amount: Math.round(total_price) // 🔥 Pastikan total_price tanpa koma
+        gross_amount: Math.round(total_price),
       },
       credit_card: { secure: true },
       customer_details: {
         first_name: full_name.split(" ")[0],
         email,
-        phone: phone_number
+        phone: phone_number,
+      },
+      expiry: {
+        start_time: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' +0700',
+        unit: "hour",
+        duration: 1, // ⏰ Berlaku 1 jam saja
       },
     };
+
 
     // 🔥 **Buat transaksi ke Midtrans**
     const transaction = await snap.createTransaction(parameter);
