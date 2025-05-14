@@ -1,13 +1,15 @@
 import dotenv from "dotenv";
 import midtransClient from "midtrans-client";
-import Transaction from "../models/TransactionModel.js"; // ✅ Import model Sequelize
-import { sendInvoiceEmail, generateInvoicePDF } from "../services/sendInvoiceEmail.js"; // ✅ Kirim Email & Generate PDF
-// import Inbox from "../models/InboxModel.js";
-
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import Transaction from "../models/TransactionModel.js";
+import { sendInvoiceEmail, generateInvoicePDF } from "../services/sendInvoiceEmail.js";
 
 dotenv.config();
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const snap = new midtransClient.Snap({
   isProduction: true,
@@ -18,21 +20,33 @@ export const createPayment = async (req, res) => {
   try {
     console.log("📥 Data yang diterima dari frontend:", req.body);
 
-    const { id_booking, total_price, full_name, email, phone_number, package_name, num_participants, checkin_date, payment_method, payment_numbers } = req.body;
+    const {
+      id_booking,
+      total_price,
+      full_name,
+      email,
+      phone_number,
+      package_name,
+      num_participants,
+      checkin_date,
+      payment_method,
+      payment_numbers
+    } = req.body;
 
+    // 🔍 Validasi wajib
     if (!id_booking || !total_price || !email || !phone_number) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // 🔹 **Buat Order ID Unik**
+    // 🆔 Buat Order ID Unik
     const order_id = `order-${id_booking}-${Date.now()}`;
 
-    // 🔥 Pastikan checkin_date valid
+    // 📅 Format checkin_date
     const formattedCheckinDate = checkin_date && checkin_date !== "-" ? checkin_date : null;
 
-    // 🔥 **Simpan transaksi ke database sebelum request ke Midtrans**
+    // 💾 Simpan ke database sebelum transaksi Midtrans
     await Transaction.create({
-      order_id, // ✅ ini simpan string seperti 'order-167-1747118127325'
+      order_id,
       id_booking,
       total_price,
       payment_status: "pending",
@@ -47,40 +61,30 @@ export const createPayment = async (req, res) => {
       payment_numbers,
     });
 
+    // 🕒 Format start_time (Midtrans minta dalam format "YYYY-MM-DD HH:mm:ss Z")
+    const start_time = dayjs().tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss Z");
+    console.log("🕒 Expiry Start Time:", start_time);
 
-    // ✅ **Parameter Midtrans**
-    // let parameter = {
-    //   transaction_details: {
-    //     order_id,
-    //     gross_amount: Math.round(total_price) // 🔥 Pastikan total_price tanpa koma
-    //   },
-    //   credit_card: { secure: true },
-    //   customer_details: {
-    //     first_name: full_name.split(" ")[0],
-    //     email,
-    //     phone: phone_number
-    //   },
-    // };
-    let parameter = {
+    // 📦 Parameter Midtrans
+    const parameter = {
       transaction_details: {
         order_id,
         gross_amount: Math.round(total_price),
       },
       credit_card: { secure: true },
       customer_details: {
-        first_name: full_name.split(" ")[0],
+        first_name: full_name ? full_name.split(" ")[0] : "Customer",
         email,
         phone: phone_number,
       },
       expiry: {
-        start_time: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' +0700',
+        start_time,
         unit: "hour",
-        duration: 1, // ⏰ Berlaku 1 jam saja
+        duration: 1, // Berlaku 1 jam
       },
     };
 
-
-    // 🔥 **Buat transaksi ke Midtrans**
+    // 🔁 Request ke Midtrans
     const transaction = await snap.createTransaction(parameter);
     console.log("✅ Transaction Token:", transaction.token);
 
@@ -88,7 +92,7 @@ export const createPayment = async (req, res) => {
   } catch (error) {
     console.error("❌ Error di Backend:", error);
 
-    // ✅ Tambahkan debug ini
+    // 💥 Jika error dari Midtrans
     if (error.response && error.response.data) {
       console.error("❌ Midtrans Error Response:", error.response.data);
     }
@@ -96,10 +100,11 @@ export const createPayment = async (req, res) => {
     res.status(500).json({
       message: "Internal Server Error",
       error: error.message,
-      midtrans_error: error.response?.data || null
+      midtrans_error: error.response?.data || null,
     });
   }
 };
+
 
 
 export const paymentNotification = async (req, res) => {
