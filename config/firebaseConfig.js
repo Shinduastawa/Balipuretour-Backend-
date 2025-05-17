@@ -4,7 +4,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, sendEmailVerific
 
 const firebaseConfig = {
   apiKey: "AIzaSyB45-UAhVk13ms7aQRtJfo-wAl5oHllCvE",
-  authDomain: "pt-bali-pure-tour.firebaseapp.com",
+  authDomain: "auth.balipuretour.com", // ← custom domain milikmu
   projectId: "pt-bali-pure-tour",
   storageBucket: "pt-bali-pure-tour.firebasestorage.app",
   messagingSenderId: "781917276998",
