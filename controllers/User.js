@@ -126,7 +126,7 @@ export const Register = async (req, res) => {
     // Buat link verifikasi
     const verificationUrl = `${process.env.BACKEND_URL}/verifyEmailNonfirebase?token=${verificationToken}`;
     console.log("EMAIL_VERIFICATION_SECRET:", process.env.EMAIL_VERIFICATION_SECRET);
-    
+
     // Kirim email verifikasi
     await transporter.sendMail({
       from: `"Bali Pure Tour" <${process.env.EMAIL_USER}>`,
@@ -377,12 +377,67 @@ export const verifyEmailNonfirebase = async (req, res) => {
     const [updated] = await User.update({ verified: true }, { where: { email } });
 
     if (updated === 0) {
-      return res.status(400).json({ msg: "Email tidak ditemukan atau sudah diverifikasi." });
+      return res.send(`
+        <html>
+          <head>
+            <title>Verification Failed</title>
+            <style>
+              body { font-family: sans-serif; text-align: center; padding: 50px; color: #d32f2f; background: #fff3f3; }
+              a { color: #1976d2; text-decoration: none; font-weight: bold; }
+            </style>
+          </head>
+          <body>
+            <h2>❌ Verification Failed</h2>
+            <p>Email not found or already verified.</p>
+            <a href="/login">Back to Login</a>
+          </body>
+        </html>
+      `);
     }
 
-    res.json({ msg: "Email berhasil diverifikasi! Silakan login." });
+    res.send(`
+      <html>
+        <head>
+          <title>Email Verified</title>
+          <style>
+            body { font-family: sans-serif; text-align: center; padding: 50px; color: #2e7d32; background: #f1f8f5; }
+            a {
+              display: inline-block;
+              margin-top: 20px;
+              padding: 10px 20px;
+              background: #2e7d32;
+              color: #fff;
+              text-decoration: none;
+              border-radius: 5px;
+            }
+            a:hover { background: #1b5e20; }
+          </style>
+        </head>
+        <body>
+          <h2>✅ Email Verified</h2>
+          <p>Your account is now active.</p>
+          <a href="/login">Login Now</a>
+        </body>
+      </html>
+    `);
+
   } catch (error) {
-    res.status(400).json({ msg: "Token tidak valid atau sudah kadaluarsa." });
+    res.send(`
+      <html>
+        <head>
+          <title>Invalid Token</title>
+          <style>
+            body { font-family: sans-serif; text-align: center; padding: 50px; color: #c62828; background: #fff0f0; }
+            a { color: #d32f2f; text-decoration: none; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <h2>❌ Invalid or Expired Token</h2>
+          <p>Please register again or contact support.</p>
+          <a href="/register">Register Again</a>
+        </body>
+      </html>
+    `);
   }
 };
 
