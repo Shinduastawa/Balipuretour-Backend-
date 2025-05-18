@@ -357,7 +357,7 @@ export const LoginGoogle = async (req, res) => {
 
 //veridy email regisyter from and login
 
-export const verifyEmail = async (req, res) => {
+export const verifyEmailNonfirebase = async (req, res) => {
   const { token } = req.query;
 
   try {
