@@ -1,6 +1,6 @@
 import express from "express";
 import upload from "../middleware/upload.js";
-import { getUser, Register, Login, Logout, UpdateUser, LoginGoogle, RegisterGoogle,  Verifyemail, uploadPhoto, handlePhotoUpload } from "../controllers/User.js";
+import { getUser, Register, Login, Logout, UpdateUser, LoginGoogle, RegisterGoogle,  Verifyemail, uploadPhoto, handlePhotoUpload, verifyEmailNonfirebase } from "../controllers/User.js";
 import { LoginAdmin, RegisterAdmin, getAdminProfile, refreshTokenAdmin} from "../controllers/Admin.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { verifyadmin } from "../middleware/verifyadmin.js";
@@ -192,6 +192,7 @@ router.get("/admin", authRole(["admin"]), (req, res) => {
 router.post("/registergoogle", RegisterGoogle);
 router.post("/logingoogle", LoginGoogle);
 router.post("/verify-email", Verifyemail);
+router.post("/verifyEmailNonfirebase", verifyEmailNonfirebase);
 // Akses hanya untuk User
 router.get("/user", authRole(["user"]), (req, res) => {
   res.json({ msg: "Halo User!" });

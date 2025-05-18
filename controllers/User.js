@@ -7,6 +7,16 @@ import Inbox from "../models/InboxModel.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import validator from "validator"; // Tambahkan di bagian atas
+import nodemailer from "nodemailer";
+
+const transporter = nodemailer.createTransport({
+  service: "gmail", // atau sesuaikan SMTP kamu
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 
 // Setup Multer
@@ -65,9 +75,27 @@ export const getUser = async (req, res) => {
 export const Register = async (req, res) => {
   const { name, email, phone_number, password } = req.body;
 
+  // Validate empty fields
   if (!name || !email || !phone_number || !password) {
-    return res.status(400).json({ msg: "Semua field harus diisi" });
+    return res.status(400).json({ msg: "All fields must be filled out" });
   }
+
+  // Validate email format
+  if (!validator.isEmail(email)) {
+    return res.status(400).json({ msg: "Invalid email format" });
+  }
+
+  // Validate phone number: digits only, minimum 8 digits
+  const phoneRegex = /^[0-9]{8,15}$/;
+  if (!phoneRegex.test(phone_number)) {
+    return res.status(400).json({ msg: "Invalid phone number (digits only, minimum 8 characters)" });
+  }
+
+  // Validate password length
+  if (password.length < 8) {
+    return res.status(400).json({ msg: "Password must be at least 8 characters long" });
+  }
+
 
   const salt = await bcryptjs.genSalt();
   const hashPassword = await bcryptjs.hash(password, salt);
@@ -75,38 +103,81 @@ export const Register = async (req, res) => {
   try {
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      return res.status(400).json({ msg: "Email sudah terdaftar" });
+      return res.status(400).json({ msg: "Email is already registered" });
     }
 
+    // Buat user baru
     await User.create({
       name,
       email,
       phone_number,
       password: hashPassword,
-      uid: uuidv4(), // Gunakan UUID sebagai UID untuk registrasi manual
-      verified: false, // Default belum diverifikasi
+      uid: uuidv4(),
+      verified: false,
     });
 
-    res.json({ msg: "Yeayy Register Berhasil" });
+    // Buat token verifikasi email
+    const verificationToken = jwt.sign(
+      { email },
+      process.env.EMAIL_VERIFICATION_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    // Buat link verifikasi
+    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+
+    // Kirim email verifikasi
+    await transporter.sendMail({
+      from: `"Bali Pure Tour" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Verify Your Email - Bali Pure Tour",
+      html: `
+    <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9;">
+      <h2 style="color: #333;">Hi ${name}!</h2>
+      <p>Thank you for registering at <strong>Bali Pure Tour</strong>.</p>
+      <p>To activate your account, please click the button below:</p>
+      <a href="${verificationUrl}" style="display: inline-block; margin: 10px 0; padding: 10px 20px; background-color: #2e7d32; color: #fff; text-decoration: none; border-radius: 5px;">Verify Email</a>
+      <p>If you did not sign up, please ignore this email.</p>
+      <br />
+      <p>Warm regards,<br />The Bali Pure Tour Team</p>
+    </div>
+  `
+    });
+
+
+    res.json({ msg: "Registration successful! Please check your email for verification." });
+
   } catch (error) {
-    console.error("Error saat registrasi manual:", error);
-    res.status(500).json({ msg: "Terjadi kesalahan saat registrasi", error: error.message });
+    console.error("Error during registration:", error);
+    res.status(500).json({ msg: "An error occurred during registration", error: error.message });
   }
+
 };
 
 
 
 export const Login = async (req, res) => {
+  const { email, password } = req.body;
+
+  // Validasi input kosong
+  if (!email || !password) {
+    return res.status(400).json({ msg: "Email dan password wajib diisi" });
+  }
+
+  // Validasi format email
+  if (!validator.isEmail(email)) {
+    return res.status(400).json({ msg: "Format email tidak valid" });
+  }
+
   try {
-    const user = await User.findOne({ where: { email: req.body.email } });
+    const user = await User.findOne({ where: { email } });
     if (!user) return res.status(404).json({ msg: "Email Tidak Terdaftar" });
 
-    const match = await bcryptjs.compare(req.body.password, user.password);
+    const match = await bcryptjs.compare(password, user.password);
     if (!match) return res.status(400).json({ msg: "Password salah" });
 
     const userId = user.id;
     const name = user.name;
-    const email = user.email;
     const profilePicture = user.profilePicture || "default.jpg";
 
     const accessToken = jwt.sign({ userId, name, email, profilePicture }, process.env.ACCSESS_TOKEN_SECRET, { expiresIn: "15m" });
@@ -118,7 +189,6 @@ export const Login = async (req, res) => {
 
     res.json({ accessToken, user });
 
-    // ⬇️ Tambahkan notifikasi login
     setTimeout(() => {
       Inbox.create({
         type: "user_login",
@@ -130,6 +200,7 @@ export const Login = async (req, res) => {
     res.status(500).json({ msg: "Terjadi kesalahan" });
   }
 };
+
 
 
 
@@ -283,6 +354,27 @@ export const LoginGoogle = async (req, res) => {
   res.json({ accessToken, user });
 };
 
+
+//veridy email regisyter from and login
+
+export const verifyEmail = async (req, res) => {
+  const { token } = req.query;
+
+  try {
+    const decoded = jwt.verify(token, process.env.EMAIL_VERIFICATION_SECRET);
+    const { email } = decoded;
+
+    const [updated] = await User.update({ verified: true }, { where: { email } });
+
+    if (updated === 0) {
+      return res.status(400).json({ msg: "Email tidak ditemukan atau sudah diverifikasi." });
+    }
+
+    res.json({ msg: "Email berhasil diverifikasi! Silakan login." });
+  } catch (error) {
+    res.status(400).json({ msg: "Token tidak valid atau sudah kadaluarsa." });
+  }
+};
 
 
 
