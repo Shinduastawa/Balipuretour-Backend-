@@ -192,7 +192,7 @@ router.get("/admin", authRole(["admin"]), (req, res) => {
 router.post("/registergoogle", RegisterGoogle);
 router.post("/logingoogle", LoginGoogle);
 router.post("/verify-email", Verifyemail);
-router.post("/verifyEmailNonfirebase", verifyEmailNonfirebase);
+router.get("/verifyEmailNonfirebase", verifyEmailNonfirebase);
 // Akses hanya untuk User
 router.get("/user", authRole(["user"]), (req, res) => {
   res.json({ msg: "Halo User!" });
