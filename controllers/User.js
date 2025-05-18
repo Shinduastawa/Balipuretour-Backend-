@@ -124,7 +124,7 @@ export const Register = async (req, res) => {
     );
 
     // Buat link verifikasi
-    const verificationUrl = `${process.env.BACKEND_URL}/api/verifyEmailNonfirebase?token=${verificationToken}`;
+    const verificationUrl = `${process.env.BACKEND_URL}/verifyEmailNonfirebase?token=${verificationToken}`;
     console.log("EMAIL_VERIFICATION_SECRET:", process.env.EMAIL_VERIFICATION_SECRET);
 
     // Kirim email verifikasi
