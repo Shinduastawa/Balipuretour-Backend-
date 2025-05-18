@@ -73,7 +73,7 @@ export const getUser = async (req, res) => {
 
 // Registrasi Pengguna Baru
 export const Register = async (req, res) => {
-  const { name, email, phone_number, password } = req.body;
+  const { name, email, phone_number, password, verified } = req.body;
 
   // Validate empty fields
   if (!name || !email || !phone_number || !password) {
