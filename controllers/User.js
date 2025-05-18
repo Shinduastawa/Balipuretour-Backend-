@@ -125,6 +125,7 @@ export const Register = async (req, res) => {
 
     // Buat link verifikasi
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+    console.log("EMAIL_VERIFICATION_SECRET:", process.env.EMAIL_VERIFICATION_SECRET);
 
     // Kirim email verifikasi
     await transporter.sendMail({
