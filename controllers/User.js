@@ -124,8 +124,7 @@ export const Register = async (req, res) => {
     );
 
     // Buat link verifikasi
-    const verificationUrl = `${process.env.BACKEND_URL}/verifyEmailNonfirebase?token=${verificationToken}`;
-    console.log("EMAIL_VERIFICATION_SECRET:", process.env.EMAIL_VERIFICATION_SECRET);
+    const verificationUrl = `${process.env.FRONTEND_URL}/verifyEmailNonfirebase?token=${verificationToken}`;
 
     // Kirim email verifikasi
     await transporter.sendMail({
