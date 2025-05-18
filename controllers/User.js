@@ -123,8 +123,7 @@ export const Register = async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    // Buat link verifikasi
-    const verificationUrl = `${process.env.FRONTEND_URL}/verifyEmailNonfirebase?token=${verificationToken}`;
+    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
     // Kirim email verifikasi
     await transporter.sendMail({
