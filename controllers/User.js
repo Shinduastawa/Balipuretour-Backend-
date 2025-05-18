@@ -113,7 +113,7 @@ export const Register = async (req, res) => {
       phone_number,
       password: hashPassword,
       uid: uuidv4(),
-      verified: false,
+      verified: verified || false,
     });
 
     // Buat token verifikasi email
@@ -177,8 +177,12 @@ export const Login = async (req, res) => {
 
   try {
     const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(404).json({ msg: "Email Tidak Terdaftar" });
+    if (!user) return res.status(404).json({ msg: "Email tidak terdaftar" });
 
+    // ❗ Cek apakah sudah verifikasi email
+    if (!user.verified) {
+      return res.status(403).json({ msg: "Email belum diverifikasi. Silakan cek email Anda." });
+    }
     const match = await bcryptjs.compare(password, user.password);
     if (!match) return res.status(400).json({ msg: "Password salah" });
 
