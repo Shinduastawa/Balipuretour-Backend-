@@ -148,9 +148,14 @@ export const Register = async (req, res) => {
     res.json({ msg: "Registration successful! Please check your email for verification." });
 
   } catch (error) {
-    console.error("Error during registration:", error);
-    res.status(500).json({ msg: "An error occurred during registration", error: error.message });
+    console.error("Error during registration:", error); // Tampilkan stack trace
+    return res.status(500).json({
+      msg: "An error occurred during registration",
+      error: error.message,
+      stack: error.stack
+    });
   }
+
 
 };
 
