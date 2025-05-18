@@ -34,7 +34,8 @@
     "path": "^0.12.7",
     "pdfkit": "^0.16.0",
     "sequelize": "^6.37.5",
-    "sequelize-cli": "^6.6.2"
+    "sequelize-cli": "^6.6.2",
+    "validator": "^13.15.0"
   },
   "type": "module"
 }
