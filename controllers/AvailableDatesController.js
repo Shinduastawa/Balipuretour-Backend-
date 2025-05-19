@@ -104,44 +104,52 @@ export const deleteAvailableDate = async (req, res) => {
 
 
 // Fungsi untuk update status tanggal jadi "booked"
-// Fungsi untuk mengecek apakah tanggal bisa dibooking (tanpa mengubah status)
 export const bookDate = async (req, res) => {
   try {
     const { id_package, checkin_date } = req.body;
 
-    // Validasi input
-    if (!id_package || !checkin_date) {
-      return res.status(400).json({ message: "id_package dan checkin_date wajib diisi." });
-    }
-
-    // Cek apakah tanggal masih tersedia dan belum dibooking
+    // Cek apakah tanggal tersedia
     const availableDate = await AvailableDates.findOne({
-      where: {
-        id_package,
-        available_date: checkin_date,
-        status: "available", // Hanya tanggal yang status-nya masih tersedia
-      },
+      where: { id_package, available_date: checkin_date, status: "available" },
     });
 
-    // Jika tidak ditemukan, kirim pesan gagal
     if (!availableDate) {
-      return res.status(404).json({
-        message: "Tanggal sudah dibooking atau tidak tersedia.",
-      });
+      return res.status(400).json({ message: "Tanggal sudah dibooking atau tidak tersedia." });
     }
 
-    // Jangan update status di sini — biarkan frontend lanjutkan ke proses booking
-    return res.status(200).json({
-      message: "Tanggal tersedia untuk dibooking.",
-      id_date: availableDate.id_date,
+    // Update status tanggal menjadi "booked"
+    await AvailableDates.update(
+      { status: "booked" },
+      { where: { id_date: availableDate.id_date } }
+    );
+
+    // Cek apakah SEMUA tanggal dari paket ini sudah booked
+    const remainingAvailable = await AvailableDates.findAll({
+      where: { id_package, status: "available" },
+    });
+
+    if (remainingAvailable.length === 0) {
+      const paket = await PackageTour.findByPk(id_package);
+      const namaPaket = paket?.package_name || "Paket Tidak Diketahui";
+
+      // Kirim notifikasi ke inbox
+      setTimeout(() => {
+        Inbox.create({
+          type: "booking_full",
+          message: `Semua tanggal untuk paket "${namaPaket}" sudah dibooking.`,
+        });
+      }, 0);
+    }
+
+    // ✅ KIRIM id_date dalam response
+    return res.json({
+      message: "Tanggal berhasil dibooking!",
+      id_date: availableDate.id_date
     });
 
   } catch (error) {
-    console.error("❌ Error saat cek ketersediaan tanggal:", error);
-    return res.status(500).json({
-      message: "Terjadi kesalahan saat mengecek tanggal.",
-      error: error.message,
-    });
+    console.error("❌ Error booking date:", error);
+    res.status(500).json({ message: "Terjadi kesalahan saat booking." });
   }
 };
 
