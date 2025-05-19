@@ -36,6 +36,16 @@ export const createBooking = async (req, res) => {
 
     const formattedDate = new Date(checkin_date).toISOString().split("T")[0];
 
+    // Tambahkan sebelum Booking.create
+    const dateToCheck = await AvailableDates.findOne({
+      where: { id_date, status: "available" }
+    });
+
+    if (!dateToCheck) {
+      return res.status(400).json({ message: "Tanggal sudah dibooking atau tidak tersedia." });
+    }
+
+
     const newBooking = await Booking.create({
       user_id,
       full_name,
