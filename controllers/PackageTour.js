@@ -198,20 +198,19 @@ export const deleteSingleGalleryImage = async (req, res) => {
     const image = await Galeries.findByPk(id);
     if (!image) return res.status(404).json({ message: "Gambar tidak ditemukan" });
 
-    // Jika kamu menyimpan file secara lokal dan ingin menghapus fisik file-nya juga
     const imagePath = path.join("public", image.img);
     if (fs.existsSync(imagePath)) {
-      fs.unlinkSync(imagePath); // Hapus file dari storage lokal
+      fs.unlinkSync(imagePath); // Hapus file lokal jika ada
     }
 
     await Galeries.destroy({ where: { id } });
 
     res.status(200).json({ message: "Gambar berhasil dihapus" });
   } catch (error) {
-    console.error("Gagal hapus gambar:", error);
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
+
 
 
 
