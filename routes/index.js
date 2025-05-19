@@ -5,7 +5,7 @@ import { LoginAdmin, RegisterAdmin, getAdminProfile, refreshTokenAdmin} from "..
 import { verifyToken } from "../middleware/verifyToken.js";
 import { verifyadmin } from "../middleware/verifyadmin.js";
 import { refreshToken } from "../controllers/RefreshToken.js";
-import { createPackageTourWithGaleries, updatePackageTourWithGaleriesAndRundown, getTourById, getTourGallery, getTourRundown, getAllPackageTours } from "../controllers/PackageTour.js";
+import { createPackageTourWithGaleries, updatePackageTourWithGaleriesAndRundown, getTourById, getTourGallery, getTourRundown, getAllPackageTours, deleteSingleGalleryImage } from "../controllers/PackageTour.js";
 import { createCardDestination, updateCardDestination, deleteCardDestinationWithPackageTour, getCardDestinationById  } from "../controllers/CardDestination.js";
 import { getAllCardDestinations } from "../controllers/CardDestination.js";
 import { getGalleryImages } from "../controllers/CardDestination.js";
@@ -110,6 +110,8 @@ router.get("/invoices", getAllInvoices); // Mengambil Semua Invoice
 router.get("/invoices/:id", getInvoiceById); // Mengambil Invoice berdasarkan ID
 router.put("/invoices/:id", updateInvoice); // Memperbarui Invoice
 router.delete("/invoices/:id", deleteInvoice); // Menghapus Invoic
+
+router.delete("/galeries/:id", deleteSingleGalleryImage);
 
 // 🔹 GET semua tanggal yang tersedia
 router.get("/available-dates", getAllAvailableDates);
