@@ -27,11 +27,11 @@ export const getTotalUsers = async (req, res) => {
   }
 };
 
-// ✅ Ambil Total Pendapatan Hanya dari Transaksi Berstatus "paid"
+// ✅ Ambil Total Pendapatan
 export const getTotalRevenue = async (req, res) => {
   try {
     const totalRevenue = await Transaction.sum("total_price", {
-      where: { status: "paid" }, // hanya transaksi yang sudah dibayar
+      where: { payment_status: "paid" }, // ✅ Gunakan kolom yang benar
     });
 
     res.status(200).json({ totalRevenue: totalRevenue || 0 });
