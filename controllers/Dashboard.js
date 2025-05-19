@@ -27,16 +27,20 @@ export const getTotalUsers = async (req, res) => {
   }
 };
 
-// ✅ Ambil Total Pendapatan
+// ✅ Ambil Total Pendapatan Hanya dari Transaksi Berstatus "paid"
 export const getTotalRevenue = async (req, res) => {
   try {
-    const totalRevenue = await Transaction.sum("total_price");
-    res.status(200).json({ totalRevenue });
+    const totalRevenue = await Transaction.sum("total_price", {
+      where: { status: "paid" }, // hanya transaksi yang sudah dibayar
+    });
+
+    res.status(200).json({ totalRevenue: totalRevenue || 0 });
   } catch (error) {
     console.error("❌ Error fetching total revenue:", error);
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
+
 
 // ✅ Ambil Paket Tour Aktif
 export const getActivePackageTours = async (req, res) => {
