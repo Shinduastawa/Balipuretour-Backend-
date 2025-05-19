@@ -191,6 +191,28 @@ export const updatePackageTourWithGaleriesAndRundown = async (req, res) => {
   }
 };
 
+// Hapus satu gambar galeri berdasarkan ID
+export const deleteSingleGalleryImage = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const image = await Galeries.findByPk(id);
+    if (!image) return res.status(404).json({ message: "Gambar tidak ditemukan" });
+
+    // Jika kamu menyimpan file secara lokal dan ingin menghapus fisik file-nya juga
+    const imagePath = path.join("public", image.img);
+    if (fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath); // Hapus file dari storage lokal
+    }
+
+    await Galeries.destroy({ where: { id } });
+
+    res.status(200).json({ message: "Gambar berhasil dihapus" });
+  } catch (error) {
+    console.error("Gagal hapus gambar:", error);
+    res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
+  }
+};
+
 
 
 
