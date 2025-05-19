@@ -50,6 +50,11 @@ export const createBooking = async (req, res) => {
       id_date,
     });
 
+    if (!newBooking || !newBooking.id) {
+      return res.status(500).json({ message: "Booking gagal dibuat." });
+    }
+
+    // ✅ Update tanggal HANYA jika booking sukses
     if (id_date) {
       await AvailableDates.update(
         { status: "booked" },
