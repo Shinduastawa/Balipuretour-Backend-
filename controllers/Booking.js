@@ -50,6 +50,13 @@ export const createBooking = async (req, res) => {
       id_date,
     });
 
+    if (id_date) {
+      await AvailableDates.update(
+        { status: "booked" },
+        { where: { id_date } }
+      );
+    }
+
     // 🔔 Tambah ke Inbox
     await Inbox.create({
       type: "new_booking",
