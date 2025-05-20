@@ -41,10 +41,11 @@ export const createBooking = async (req, res) => {
     const dateToCheck = await AvailableDates.findOne({
       where: {
         id_package,
-        date: formattedDate,
+        available_date: formattedDate,
         status: "available",
       },
     });
+
 
     if (!dateToCheck) {
       return res.status(400).json({ message: "Tanggal sudah dibooking atau tidak tersedia." });
