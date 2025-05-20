@@ -71,9 +71,10 @@ export const createBooking = async (req, res) => {
     }
 
     // ✅ Tandai tanggal sebagai 'booked'
+    // 2. Update status tanggal setelah booking sukses
     await AvailableDates.update(
-      { status: "booked" },
-      { where: { id_date: dateToCheck.id_date } }
+      { status: 'booked' },
+      { where: { id_date: req.body.id_date } }
     );
 
     // 🔔 Tambah ke Inbox
