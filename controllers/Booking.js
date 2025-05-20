@@ -1,29 +1,16 @@
 import Booking from "../models/BookingModel.js";
 import PackageTour from "../models/PackgeTourModel.js";
-import Inbox from "../models/InboxModel.js";
+import Inbox from "../models/InboxModel.js"; // ⬅️ Tambahin ini di atas
 import AvailableDates from "../models/AvailableDatesModel.js";
 import nodemailer from "nodemailer";
 
 // ✅ Buat Booking Baru
-
 export const createBooking = async (req, res) => {
   try {
-    console.log("🔍 User dari Token:", req.user);
+    console.log("🔍 User dari Token:", req.user); // Debug user dari token
 
-    const {
-      full_name,
-      email,
-      phone_number,
-      id_package,
-      package_name,
-      num_participants,
-      checkin_date,
-      price,
-      price_idr,
-      id_date,
-    } = req.body;
-
-    const user_id = req.user?.id;
+    const { full_name, email, phone_number, id_package, package_name, num_participants, checkin_date, price, price_idr, id_date } = req.body;
+    const user_id = req.user?.id; // Gunakan req.user.id
 
     if (!user_id) {
       console.error("❌ User tidak terautentikasi!");
@@ -36,16 +23,6 @@ export const createBooking = async (req, res) => {
     }
 
     const formattedDate = new Date(checkin_date).toISOString().split("T")[0];
-
-    // Tambahkan sebelum Booking.create
-    const dateToCheck = await AvailableDates.findOne({
-      where: { id_date, status: "available" }
-    });
-
-    if (!dateToCheck) {
-      return res.status(400).json({ message: "Tanggal sudah dibooking atau tidak tersedia." });
-    }
-
 
     const newBooking = await Booking.create({
       user_id,
@@ -60,24 +37,14 @@ export const createBooking = async (req, res) => {
       price_idr,
       id_date,
     });
+    // 🔔 Kirim notifikasi ke Inbox
+    console.log("ID Date yang diterima:", id_date); // Debug
 
-    if (!newBooking || !newBooking.id) {
-      return res.status(500).json({ message: "Booking gagal dibuat." });
-    }
-
-    // ✅ Update tanggal HANYA jika booking sukses
-    if (id_date) {
-      await AvailableDates.update(
-        { status: "booked" },
-        { where: { id_date } }
-      );
-    }
-
-    // 🔔 Tambah ke Inbox
     await Inbox.create({
       type: "new_booking",
       message: `Booking baru dibuat oleh ${full_name} untuk paket "${package_name}".`,
     });
+
 
     // 📧 Kirim Email Notifikasi
     const transporter = nodemailer.createTransport({
@@ -145,7 +112,6 @@ export const createBooking = async (req, res) => {
         console.log("✅ Email terkirim:", info.response);
       }
     });
-
     res.status(201).json({ message: "✅ Booking berhasil!", booking: newBooking });
 
   } catch (error) {
@@ -153,7 +119,6 @@ export const createBooking = async (req, res) => {
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
-
 
 
 // ✅ Ambil Semua Booking
@@ -214,8 +179,8 @@ export const updateBookingStatus = async (req, res) => {
         { status: "available" },
         { where: { id_date: booking.id_date } }
       );
-    }
 
+    }
 
     res.status(200).json({ message: "Status booking berhasil diperbarui", data: booking });
   } catch (error) {
@@ -303,8 +268,8 @@ export const updateBookingStatusByAdmin = async (req, res) => {
         { status: "available" },
         { where: { id_date: booking.id_date } }
       );
-    }
 
+    }
 
     res.status(200).json({
       message: `Status booking ${id} berhasil diupdate ke ${status}`,
