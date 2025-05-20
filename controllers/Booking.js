@@ -3,9 +3,10 @@ import PackageTour from "../models/PackgeTourModel.js";
 import Inbox from "../models/InboxModel.js";
 import AvailableDates from "../models/AvailableDatesModel.js";
 import nodemailer from "nodemailer";
+import sequelize from "../config/Database.js"; // Pastikan import sequelize instance kamu dengan benar
 
-// ✅ Buat Booking Baru
 export const createBooking = async (req, res) => {
+  const t = await sequelize.transaction(); // Mulai transaksi
   try {
     console.log("🔍 User dari Token:", req.user);
 
@@ -19,58 +20,87 @@ export const createBooking = async (req, res) => {
       checkin_date,
       price,
       price_idr,
-      id_date,
     } = req.body;
 
     const user_id = req.user?.id;
-
     if (!user_id) {
       console.error("❌ User tidak terautentikasi!");
       return res.status(401).json({ message: "User tidak terautentikasi" });
     }
 
-    if (!full_name || !phone_number || !id_package || !num_participants || !checkin_date || !price) {
+    if (
+      !full_name ||
+      !phone_number ||
+      !id_package ||
+      !num_participants ||
+      !checkin_date ||
+      !price
+    ) {
       console.error("❌ Data booking tidak lengkap!");
       return res.status(400).json({ message: "Semua field harus diisi" });
     }
 
     const formattedDate = new Date(checkin_date).toISOString().split("T")[0];
 
-    // Tambahkan sebelum Booking.create
-    const dateToCheck = await AvailableDates.findOne({
-      where: { id_date, status: "available" }
+    // 1. Cek apakah tanggal masih tersedia dengan status "available"
+    const availableDate = await AvailableDates.findOne({
+      where: { id_package, available_date: formattedDate, status: "available" },
+      transaction: t,
+      lock: t.LOCK.UPDATE, // lock row untuk menghindari race condition
     });
 
-    if (!dateToCheck) {
-      return res.status(400).json({ message: "Tanggal sudah dibooking atau tidak tersedia." });
+    if (!availableDate) {
+      await t.rollback();
+      return res
+        .status(400)
+        .json({ message: "Tanggal sudah dibooking atau tidak tersedia." });
     }
 
-
-    const newBooking = await Booking.create({
-      user_id,
-      full_name,
-      email,
-      phone_number,
-      id_package,
-      package_name,
-      num_participants,
-      checkin_date: formattedDate,
-      price,
-      price_idr,
-      id_date,
-    });
+    // 2. Simpan data booking
+    const newBooking = await Booking.create(
+      {
+        user_id,
+        full_name,
+        email,
+        phone_number,
+        id_package,
+        package_name,
+        num_participants,
+        checkin_date: formattedDate,
+        price,
+        price_idr,
+        id_date: availableDate.id_date,
+      },
+      { transaction: t }
+    );
 
     if (!newBooking || !newBooking.id) {
+      await t.rollback();
       return res.status(500).json({ message: "Booking gagal dibuat." });
     }
 
-    // ✅ Update tanggal HANYA jika booking sukses
-    if (id_date) {
-      await AvailableDates.update(
-        { status: "booked" },
-        { where: { id_date } }
-      );
+    // 3. Update status tanggal menjadi "booked" HANYA jika booking sukses
+    await AvailableDates.update(
+      { status: "booked" },
+      { where: { id_date: availableDate.id_date }, transaction: t }
+    );
+
+    // 4. Cek apakah semua tanggal paket sudah habis dipesan
+    const remainingAvailable = await AvailableDates.findAll({
+      where: { id_package, status: "available" },
+      transaction: t,
+    });
+
+    if (remainingAvailable.length === 0) {
+      setTimeout(async () => {
+        await Inbox.create({
+          type: "booking_full",
+          message: `Semua tanggal untuk paket "${package_name}" sudah dibooking.`,
+        });
+      }, 0);
     }
+
+    await t.commit(); // Commit transaksi
 
     // 🔔 Tambah ke Inbox
     await Inbox.create({
@@ -92,49 +122,28 @@ export const createBooking = async (req, res) => {
       to: "info.balipuretour@gmail.com",
       subject: `Booking Baru dari ${full_name}`,
       html: `
-    <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
-      <div style="background-color: #4CAF50; color: white; padding: 20px; text-align: center;">
-        <h2>Booking Baru Diterima</h2>
-        <p>Bali Pure Tour</p>
+      <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+        <div style="background-color: #4CAF50; color: white; padding: 20px; text-align: center;">
+          <h2>Booking Baru Diterima</h2>
+          <p>Bali Pure Tour</p>
+        </div>
+        <div style="padding: 20px; background-color: #fafafa;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+            <tr><td style="padding: 8px;"><strong>Nama</strong></td><td style="padding: 8px;">${full_name}</td></tr>
+            <tr style="background-color: #f0f0f0;"><td style="padding: 8px;"><strong>Email</strong></td><td style="padding: 8px;">${email}</td></tr>
+            <tr><td style="padding: 8px;"><strong>Telepon</strong></td><td style="padding: 8px;">${phone_number}</td></tr>
+            <tr style="background-color: #f0f0f0;"><td style="padding: 8px;"><strong>Paket</strong></td><td style="padding: 8px;">${package_name}</td></tr>
+            <tr><td style="padding: 8px;"><strong>Tanggal</strong></td><td style="padding: 8px;">${formattedDate}</td></tr>
+            <tr style="background-color: #f0f0f0;"><td style="padding: 8px;"><strong>Jumlah Peserta</strong></td><td style="padding: 8px;">${num_participants}</td></tr>
+            <tr><td style="padding: 8px;"><strong>Harga</strong></td><td style="padding: 8px;">${price} (${price_idr} IDR)</td></tr>
+          </table>
+          <p style="margin-top: 20px; font-size: 14px; color: #666;">Silakan cek dashboard admin untuk melihat detail dan memproses booking ini.</p>
+        </div>
+        <div style="text-align: center; background-color: #f5f5f5; padding: 10px; font-size: 12px; color: #999;">
+          &copy; ${new Date().getFullYear()} Bali Pure Tour. All rights reserved.
+        </div>
       </div>
-      <div style="padding: 20px; background-color: #fafafa;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
-          <tr>
-            <td style="padding: 8px;"><strong>Nama</strong></td>
-            <td style="padding: 8px;">${full_name}</td>
-          </tr>
-          <tr style="background-color: #f0f0f0;">
-            <td style="padding: 8px;"><strong>Email</strong></td>
-            <td style="padding: 8px;">${email}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px;"><strong>Telepon</strong></td>
-            <td style="padding: 8px;">${phone_number}</td>
-          </tr>
-          <tr style="background-color: #f0f0f0;">
-            <td style="padding: 8px;"><strong>Paket</strong></td>
-            <td style="padding: 8px;">${package_name}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px;"><strong>Tanggal</strong></td>
-            <td style="padding: 8px;">${formattedDate}</td>
-          </tr>
-          <tr style="background-color: #f0f0f0;">
-            <td style="padding: 8px;"><strong>Jumlah Peserta</strong></td>
-            <td style="padding: 8px;">${num_participants}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px;"><strong>Harga</strong></td>
-            <td style="padding: 8px;">${price} (${price_idr} IDR)</td>
-          </tr>
-        </table>
-        <p style="margin-top: 20px; font-size: 14px; color: #666;">Silakan cek dashboard admin untuk melihat detail dan memproses booking ini.</p>
-      </div>
-      <div style="text-align: center; background-color: #f5f5f5; padding: 10px; font-size: 12px; color: #999;">
-        &copy; ${new Date().getFullYear()} Bali Pure Tour. All rights reserved.
-      </div>
-    </div>
-  `,
+    `,
     };
 
     transporter.sendMail(mailOptions, (err, info) => {
@@ -146,13 +155,12 @@ export const createBooking = async (req, res) => {
     });
 
     res.status(201).json({ message: "✅ Booking berhasil!", booking: newBooking });
-
   } catch (error) {
+    await t.rollback();
     console.error("❌ Error saat membuat booking:", error.message);
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
-
 
 
 // ✅ Ambil Semua Booking
