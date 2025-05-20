@@ -5,7 +5,7 @@ import AvailableDates from "../models/AvailableDatesModel.js";
 import nodemailer from "nodemailer";
 
 // ✅ Buat Booking Baru
-  
+
 export const createBooking = async (req, res) => {
   try {
     console.log("🔍 User dari Token:", req.user);
@@ -38,14 +38,37 @@ export const createBooking = async (req, res) => {
     const formattedDate = new Date(checkin_date).toISOString().split("T")[0];
 
     // Tambahkan sebelum Booking.create
+    // const dateToCheck = await AvailableDates.findOne({
+    //   where: { id_date, status: "available" }
+    // });
+
     const dateToCheck = await AvailableDates.findOne({
-      where: { id_date, status: "available" }
+      where: {
+        id_package,
+        date: formattedDate,
+        status: "available",
+      },
     });
+
 
     if (!dateToCheck) {
       return res.status(400).json({ message: "Tanggal sudah dibooking atau tidak tersedia." });
     }
 
+
+    // const newBooking = await Booking.create({
+    //   user_id,
+    //   full_name,
+    //   email,
+    //   phone_number,
+    //   id_package,
+    //   package_name,
+    //   num_participants,
+    //   checkin_date: formattedDate,
+    //   price,
+    //   price_idr,
+    //   id_date,
+    // });
 
     const newBooking = await Booking.create({
       user_id,
@@ -58,20 +81,32 @@ export const createBooking = async (req, res) => {
       checkin_date: formattedDate,
       price,
       price_idr,
-      id_date,
+      id_date: dateToCheck.id_date, // ✅ pakai dari hasil pencarian
     });
 
+    // Update status tanggal HANYA kalau booking berhasil
     if (!newBooking || !newBooking.id) {
       return res.status(500).json({ message: "Booking gagal dibuat." });
     }
 
-    // ✅ Update tanggal HANYA jika booking sukses
-    if (id_date) {
-      await AvailableDates.update(
-        { status: "booked" },
-        { where: { id_date } }
-      );
-    }
+    // Jadi hanya kalau booking berhasil, tanggal ditandai "booked"
+    await AvailableDates.update(
+      { status: "booked" },
+      { where: { id_date: dateToCheck.id_date } }
+    );
+
+
+    // if (!newBooking || !newBooking.id) {
+    //   return res.status(500).json({ message: "Booking gagal dibuat." });
+    // }
+
+    // // ✅ Update tanggal HANYA jika booking sukses
+    // if (id_date) {
+    //   await AvailableDates.update(
+    //     { status: "booked" },
+    //     { where: { id_date } }
+    //   );
+    // }
 
     // 🔔 Tambah ke Inbox
     await Inbox.create({
