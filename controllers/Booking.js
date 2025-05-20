@@ -6,6 +6,7 @@ import nodemailer from "nodemailer";
 
 // ✅ Buat Booking Baru
 
+// ✅ Buat Booking Baru
 export const createBooking = async (req, res) => {
   try {
     console.log("🔍 User dari Token:", req.user);
@@ -20,7 +21,6 @@ export const createBooking = async (req, res) => {
       checkin_date,
       price,
       price_idr,
-      id_date,
     } = req.body;
 
     const user_id = req.user?.id;
@@ -37,11 +37,7 @@ export const createBooking = async (req, res) => {
 
     const formattedDate = new Date(checkin_date).toISOString().split("T")[0];
 
-    // Tambahkan sebelum Booking.create
-    // const dateToCheck = await AvailableDates.findOne({
-    //   where: { id_date, status: "available" }
-    // });
-
+    // ✅ Cari tanggal yang tersedia berdasarkan paket dan tanggal
     const dateToCheck = await AvailableDates.findOne({
       where: {
         id_package,
@@ -50,26 +46,11 @@ export const createBooking = async (req, res) => {
       },
     });
 
-
     if (!dateToCheck) {
       return res.status(400).json({ message: "Tanggal sudah dibooking atau tidak tersedia." });
     }
 
-
-    // const newBooking = await Booking.create({
-    //   user_id,
-    //   full_name,
-    //   email,
-    //   phone_number,
-    //   id_package,
-    //   package_name,
-    //   num_participants,
-    //   checkin_date: formattedDate,
-    //   price,
-    //   price_idr,
-    //   id_date,
-    // });
-
+    // ✅ Buat booking
     const newBooking = await Booking.create({
       user_id,
       full_name,
@@ -84,29 +65,15 @@ export const createBooking = async (req, res) => {
       id_date: dateToCheck.id_date,
     });
 
-    // Update status tanggal HANYA kalau booking berhasil
     if (!newBooking || !newBooking.id) {
       return res.status(500).json({ message: "Booking gagal dibuat." });
     }
 
-    // Jadi hanya kalau booking berhasil, tanggal ditandai "booked"
+    // ✅ Tandai tanggal sebagai 'booked'
     await AvailableDates.update(
       { status: "booked" },
       { where: { id_date: dateToCheck.id_date } }
     );
-
-
-    // if (!newBooking || !newBooking.id) {
-    //   return res.status(500).json({ message: "Booking gagal dibuat." });
-    // }
-
-    // // ✅ Update tanggal HANYA jika booking sukses
-    // if (id_date) {
-    //   await AvailableDates.update(
-    //     { status: "booked" },
-    //     { where: { id_date } }
-    //   );
-    // }
 
     // 🔔 Tambah ke Inbox
     await Inbox.create({
@@ -128,49 +95,28 @@ export const createBooking = async (req, res) => {
       to: "info.balipuretour@gmail.com",
       subject: `Booking Baru dari ${full_name}`,
       html: `
-    <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
-      <div style="background-color: #4CAF50; color: white; padding: 20px; text-align: center;">
-        <h2>Booking Baru Diterima</h2>
-        <p>Bali Pure Tour</p>
-      </div>
-      <div style="padding: 20px; background-color: #fafafa;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
-          <tr>
-            <td style="padding: 8px;"><strong>Nama</strong></td>
-            <td style="padding: 8px;">${full_name}</td>
-          </tr>
-          <tr style="background-color: #f0f0f0;">
-            <td style="padding: 8px;"><strong>Email</strong></td>
-            <td style="padding: 8px;">${email}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px;"><strong>Telepon</strong></td>
-            <td style="padding: 8px;">${phone_number}</td>
-          </tr>
-          <tr style="background-color: #f0f0f0;">
-            <td style="padding: 8px;"><strong>Paket</strong></td>
-            <td style="padding: 8px;">${package_name}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px;"><strong>Tanggal</strong></td>
-            <td style="padding: 8px;">${formattedDate}</td>
-          </tr>
-          <tr style="background-color: #f0f0f0;">
-            <td style="padding: 8px;"><strong>Jumlah Peserta</strong></td>
-            <td style="padding: 8px;">${num_participants}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px;"><strong>Harga</strong></td>
-            <td style="padding: 8px;">${price} (${price_idr} IDR)</td>
-          </tr>
-        </table>
-        <p style="margin-top: 20px; font-size: 14px; color: #666;">Silakan cek dashboard admin untuk melihat detail dan memproses booking ini.</p>
-      </div>
-      <div style="text-align: center; background-color: #f5f5f5; padding: 10px; font-size: 12px; color: #999;">
-        &copy; ${new Date().getFullYear()} Bali Pure Tour. All rights reserved.
-      </div>
-    </div>
-  `,
+        <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+          <div style="background-color: #4CAF50; color: white; padding: 20px; text-align: center;">
+            <h2>Booking Baru Diterima</h2>
+            <p>Bali Pure Tour</p>
+          </div>
+          <div style="padding: 20px; background-color: #fafafa;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+              <tr><td style="padding: 8px;"><strong>Nama</strong></td><td style="padding: 8px;">${full_name}</td></tr>
+              <tr style="background-color: #f0f0f0;"><td style="padding: 8px;"><strong>Email</strong></td><td style="padding: 8px;">${email}</td></tr>
+              <tr><td style="padding: 8px;"><strong>Telepon</strong></td><td style="padding: 8px;">${phone_number}</td></tr>
+              <tr style="background-color: #f0f0f0;"><td style="padding: 8px;"><strong>Paket</strong></td><td style="padding: 8px;">${package_name}</td></tr>
+              <tr><td style="padding: 8px;"><strong>Tanggal</strong></td><td style="padding: 8px;">${formattedDate}</td></tr>
+              <tr style="background-color: #f0f0f0;"><td style="padding: 8px;"><strong>Jumlah Peserta</strong></td><td style="padding: 8px;">${num_participants}</td></tr>
+              <tr><td style="padding: 8px;"><strong>Harga</strong></td><td style="padding: 8px;">${price} (${price_idr} IDR)</td></tr>
+            </table>
+            <p style="margin-top: 20px; font-size: 14px; color: #666;">Silakan cek dashboard admin untuk melihat detail dan memproses booking ini.</p>
+          </div>
+          <div style="text-align: center; background-color: #f5f5f5; padding: 10px; font-size: 12px; color: #999;">
+            &copy; ${new Date().getFullYear()} Bali Pure Tour. All rights reserved.
+          </div>
+        </div>
+      `,
     };
 
     transporter.sendMail(mailOptions, (err, info) => {
