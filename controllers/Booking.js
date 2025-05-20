@@ -81,7 +81,7 @@ export const createBooking = async (req, res) => {
       checkin_date: formattedDate,
       price,
       price_idr,
-      id_date: dateToCheck.id_date, // ✅ pakai dari hasil pencarian
+      id_date: dateToCheck.id_date,
     });
 
     // Update status tanggal HANYA kalau booking berhasil
