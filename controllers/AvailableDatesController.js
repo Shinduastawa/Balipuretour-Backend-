@@ -1,6 +1,5 @@
 import AvailableDates from "../models/AvailableDatesModel.js";
 import PackageTour from "../models/PackgeTourModel.js";
-import Booking from "../models/BookingModel.js";
 import Inbox from "../models/InboxModel.js";
 import db from "../config/Database.js";
 
@@ -105,21 +104,18 @@ export const deleteAvailableDate = async (req, res) => {
 };
 
 
-// === Fungsi untuk Booking Tanggal ===
 export const bookDate = async (req, res) => {
-  const t = await db.transaction(); // mulai transaction
+  const t = await db.transaction();
 
   try {
-    const { id_package, checkin_date, jumlah_peserta } = req.body;
-    const user_id = req.user.id; // ✅ Ambil user_id dari token, bukan dari body
+    const { id_package, checkin_date } = req.body;
+    const user_id = req.user.id;
 
-    // ✅ Validasi user login
     if (!user_id) {
       await t.rollback();
       return res.status(401).json({ message: "Session login telah habis. Silakan login kembali." });
     }
 
-    // ✅ Cek apakah tanggal masih tersedia
     const availableDate = await AvailableDates.findOne({
       where: {
         id_package,
@@ -134,16 +130,7 @@ export const bookDate = async (req, res) => {
       return res.status(400).json({ message: "Tanggal tidak tersedia atau sudah dibooking." });
     }
 
-    // ✅ Simpan booking (belum ubah status tanggal)
-    const newBooking = await Booking.create({
-      id_package,
-      id_date: availableDate.id_date,
-      user_id,
-      jumlah_peserta,
-      status: "pending"
-    }, { transaction: t });
-
-    // ✅ Setelah booking tersimpan, ubah status tanggal jadi "booked"
+    // ✅ Ubah status tanggal jadi "booked"
     await AvailableDates.update(
       { status: "booked" },
       {
@@ -162,7 +149,6 @@ export const bookDate = async (req, res) => {
       const paket = await PackageTour.findByPk(id_package, { transaction: t });
       const namaPaket = paket?.package_name || "Paket Tidak Diketahui";
 
-      // Kirim notifikasi ke Inbox setelah transaksi selesai
       setTimeout(() => {
         Inbox.create({
           type: "booking_full",
@@ -171,21 +157,20 @@ export const bookDate = async (req, res) => {
       }, 0);
     }
 
-    // ✅ Commit semua perubahan
     await t.commit();
 
     return res.status(200).json({
-      message: "Booking berhasil!",
-      id_date: availableDate.id_date,
-      booking_id: newBooking.id_booking
+      message: "Tanggal berhasil dibooking!",
+      id_date: availableDate.id_date
     });
 
   } catch (error) {
     console.error("❌ Gagal booking:", error);
-    await t.rollback(); // rollback jika error
+    await t.rollback();
     return res.status(500).json({ message: "Terjadi kesalahan saat booking." });
   }
 };
+
 
 
 
