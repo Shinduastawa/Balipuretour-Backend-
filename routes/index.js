@@ -113,7 +113,7 @@ router.get("/invoices/:id", getInvoiceById); // Mengambil Invoice berdasarkan ID
 router.put("/invoices/:id", updateInvoice); // Memperbarui Invoice
 router.delete("/invoices/:id", deleteInvoice); // Menghapus Invoic
 
-router.delete("/galeries/:id", deleteSingleGalleryImage);
+router.delete("/gallery/:id", deleteSingleGalleryImage);
 
 // 🔹 GET semua tanggal yang tersedia
 router.get("/available-dates", getAllAvailableDates);
