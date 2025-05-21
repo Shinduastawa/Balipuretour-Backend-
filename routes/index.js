@@ -134,7 +134,7 @@ router.get("/booked-dates", getBookedDates);
 router.delete("/available-dates/:id_date", deleteAvailableDate);
 
 // untuk status update avlible
-router.post("/book-date", authenticateUser, bookDate)
+router.post("/book-date", verifyToken, bookDate)
 
 
 router.get("/getAllTransactions",  getAllTransactions);
