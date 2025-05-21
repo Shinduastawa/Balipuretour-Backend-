@@ -116,7 +116,7 @@ export const updatePackageTourWithGaleriesAndRundown = async (req, res) => {
       return res.status(400).json({ message: "Gagal mendapatkan ID PackageTour" });
     }
 
-    if (!req.body.package_name || !req.body.price_usd_2_5_person)  {
+    if (!req.body.package_name || !req.body.price_usd_2_5_person) {
       return res.status(400).json({ message: "Data tidak lengkap!" });
     }
 
@@ -129,21 +129,21 @@ export const updatePackageTourWithGaleriesAndRundown = async (req, res) => {
       ? req.body.facility_tour.join(". ")
       : req.body.facility_tour || "";
 
-      const updatedPackage = await PackageTour.update(
-        {
-          package_name: req.body.package_name,
-          about_package: req.body.about_package,
-          program_tour: programTour,
-          price_usd_2_5_person: req.body.price_usd_2_5_person,
-          price_usd_6_10_person: req.body.price_usd_6_10_person,
-          price_usd_11_15_person: req.body.price_usd_11_15_person,
-          price_usd_16_20_person: req.body.price_usd_16_20_person,
-          price_usd_21_person_up: req.body.price_usd_21_person_up,
-          facility_tour: facilityTour,
-          contact_pt: req.body.contact_pt,
-        },
-        { where: { id_package: packageId } }
-      );
+    const updatedPackage = await PackageTour.update(
+      {
+        package_name: req.body.package_name,
+        about_package: req.body.about_package,
+        program_tour: programTour,
+        price_usd_2_5_person: req.body.price_usd_2_5_person,
+        price_usd_6_10_person: req.body.price_usd_6_10_person,
+        price_usd_11_15_person: req.body.price_usd_11_15_person,
+        price_usd_16_20_person: req.body.price_usd_16_20_person,
+        price_usd_21_person_up: req.body.price_usd_21_person_up,
+        facility_tour: facilityTour,
+        contact_pt: req.body.contact_pt,
+      },
+      { where: { id_package: packageId } }
+    );
 
 
     console.log("Paket tour berhasil diperbarui:", updatedPackage);
@@ -276,3 +276,67 @@ export const getTourRundown = async (req, res) => {
     res.status(500).json({ error: "Gagal mengambil rundown" });
   }
 };
+
+// Hapus satu rundown berdasarkan ID
+export const deleteRundown = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const rundown = await Rundown.findByPk(id);
+    if (!rundown) return res.status(404).json({ message: "Rundown tidak ditemukan" });
+
+    await Rundown.destroy({ where: { id } });
+    res.status(200).json({ message: "Rundown berhasil dihapus" });
+  } catch (error) {
+    res.status(500).json({ message: "Gagal menghapus rundown", error: error.message });
+  }
+};
+
+// Hapus satu program tour berdasarkan ID (jika model terpisah)
+export const deleteProgramTourByIndex = async (req, res) => {
+  const { id_package, index } = req.params;
+
+  try {
+    const tour = await PackageTour.findByPk(id_package);
+    if (!tour) return res.status(404).json({ message: "Paket tour tidak ditemukan" });
+
+    let programs = tour.program_tour ? tour.program_tour.split(". ") : [];
+    if (index < 0 || index >= programs.length) {
+      return res.status(400).json({ message: "Index program tidak valid" });
+    }
+
+    // Hapus program berdasarkan index
+    programs.splice(index, 1);
+    tour.program_tour = programs.join(". ");
+    await tour.save();
+
+    res.status(200).json({ message: "Program tour berhasil dihapus", program_tour: tour.program_tour });
+  } catch (error) {
+    res.status(500).json({ message: "Gagal menghapus program tour", error: error.message });
+  }
+};
+
+// Hapus satu fasilitas tour berdasarkan ID (jika model terpisah)
+export const deleteFacilityTourByIndex = async (req, res) => {
+  const { id_package, index } = req.params;
+
+  try {
+    const tour = await PackageTour.findByPk(id_package);
+    if (!tour) return res.status(404).json({ message: "Paket tour tidak ditemukan" });
+
+    let facilities = tour.facility_tour ? tour.facility_tour.split(". ") : [];
+    if (index < 0 || index >= facilities.length) {
+      return res.status(400).json({ message: "Index fasilitas tidak valid" });
+    }
+
+    // Hapus fasilitas berdasarkan index
+    facilities.splice(index, 1);
+    tour.facility_tour = facilities.join(". ");
+    await tour.save();
+
+    res.status(200).json({ message: "Fasilitas tour berhasil dihapus", facility_tour: tour.facility_tour });
+  } catch (error) {
+    res.status(500).json({ message: "Gagal menghapus fasilitas tour", error: error.message });
+  }
+};
+
+
