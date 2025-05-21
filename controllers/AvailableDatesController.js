@@ -104,15 +104,15 @@ export const deleteAvailableDate = async (req, res) => {
 };
 
 
-// Fungsi untuk update status tanggal jadi "booked"
 // === Fungsi untuk Booking Tanggal ===
 export const bookDate = async (req, res) => {
   const t = await db.transaction(); // mulai transaction
 
   try {
-    const { id_package, checkin_date, user_id, jumlah_peserta } = req.body;
+    const { id_package, checkin_date, jumlah_peserta } = req.body;
+    const user_id = req.user.id; // ✅ Ambil user_id dari token, bukan dari body
 
-    // ✅ Validasi user login dulu
+    // ✅ Validasi user login
     if (!user_id) {
       await t.rollback();
       return res.status(401).json({ message: "Session login telah habis. Silakan login kembali." });
