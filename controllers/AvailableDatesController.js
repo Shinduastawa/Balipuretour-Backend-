@@ -1,6 +1,7 @@
 import AvailableDates from "../models/AvailableDatesModel.js";
 import PackageTour from "../models/PackgeTourModel.js";
 import Inbox from "../models/InboxModel.js";
+import db from "../config/Database.js";
 
 // ✅ Get All Available Dates (Semua tanggal tersedia)
 export const getAllAvailableDates = async (req, res) => {
@@ -104,35 +105,63 @@ export const deleteAvailableDate = async (req, res) => {
 
 
 // Fungsi untuk update status tanggal jadi "booked"
+// === Fungsi untuk Booking Tanggal ===
 export const bookDate = async (req, res) => {
-  try {
-    const { id_package, checkin_date } = req.body;
+  const t = await db.transaction(); // mulai transaction
 
-    // Cek apakah tanggal tersedia
+  try {
+    const { id_package, checkin_date, user_id, jumlah_peserta } = req.body;
+
+    // ✅ Validasi user login dulu
+    if (!user_id) {
+      await t.rollback();
+      return res.status(401).json({ message: "Session login telah habis. Silakan login kembali." });
+    }
+
+    // ✅ Cek apakah tanggal masih tersedia
     const availableDate = await AvailableDates.findOne({
-      where: { id_package, available_date: checkin_date, status: "available" },
+      where: {
+        id_package,
+        available_date: checkin_date,
+        status: "available"
+      },
+      transaction: t
     });
 
     if (!availableDate) {
-      return res.status(400).json({ message: "Tanggal sudah dibooking atau tidak tersedia." });
+      await t.rollback();
+      return res.status(400).json({ message: "Tanggal tidak tersedia atau sudah dibooking." });
     }
 
-    // Update status tanggal menjadi "booked"
+    // ✅ Simpan booking (belum ubah status tanggal)
+    const newBooking = await Booking.create({
+      id_package,
+      id_date: availableDate.id_date,
+      user_id,
+      jumlah_peserta,
+      status: "pending"
+    }, { transaction: t });
+
+    // ✅ Setelah booking tersimpan, ubah status tanggal jadi "booked"
     await AvailableDates.update(
       { status: "booked" },
-      { where: { id_date: availableDate.id_date } }
+      {
+        where: { id_date: availableDate.id_date },
+        transaction: t
+      }
     );
 
-    // Cek apakah SEMUA tanggal dari paket ini sudah booked
-    const remainingAvailable = await AvailableDates.findAll({
+    // ✅ Cek apakah semua tanggal di paket ini sudah habis
+    const sisaTanggal = await AvailableDates.findAll({
       where: { id_package, status: "available" },
+      transaction: t
     });
 
-    if (remainingAvailable.length === 0) {
-      const paket = await PackageTour.findByPk(id_package);
+    if (sisaTanggal.length === 0) {
+      const paket = await PackageTour.findByPk(id_package, { transaction: t });
       const namaPaket = paket?.package_name || "Paket Tidak Diketahui";
 
-      // Kirim notifikasi ke inbox
+      // Kirim notifikasi ke Inbox setelah transaksi selesai
       setTimeout(() => {
         Inbox.create({
           type: "booking_full",
@@ -141,15 +170,19 @@ export const bookDate = async (req, res) => {
       }, 0);
     }
 
-    // ✅ KIRIM id_date dalam response
-    return res.json({
-      message: "Tanggal berhasil dibooking!",
-      id_date: availableDate.id_date
+    // ✅ Commit semua perubahan
+    await t.commit();
+
+    return res.status(200).json({
+      message: "Booking berhasil!",
+      id_date: availableDate.id_date,
+      booking_id: newBooking.id_booking
     });
 
   } catch (error) {
-    console.error("❌ Error booking date:", error);
-    res.status(500).json({ message: "Terjadi kesalahan saat booking." });
+    console.error("❌ Gagal booking:", error);
+    await t.rollback(); // rollback jika error
+    return res.status(500).json({ message: "Terjadi kesalahan saat booking." });
   }
 };
 
