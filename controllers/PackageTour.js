@@ -277,19 +277,22 @@ export const getTourRundown = async (req, res) => {
   }
 };
 
-// Hapus satu rundown berdasarkan ID
 export const deleteRundown = async (req, res) => {
   const { id } = req.params;
-  try {
-    const rundown = await Rundown.findByPk(id);
-    if (!rundown) return res.status(404).json({ message: "Rundown tidak ditemukan" });
 
-    await Rundown.destroy({ where: { id } });
+  try {
+    const deleted = await Rundown.destroy({ where: { id } });
+
+    if (deleted === 0) {
+      return res.status(404).json({ message: "Rundown tidak ditemukan" });
+    }
+
     res.status(200).json({ message: "Rundown berhasil dihapus" });
   } catch (error) {
     res.status(500).json({ message: "Gagal menghapus rundown", error: error.message });
   }
 };
+
 
 // Hapus satu program tour berdasarkan ID (jika model terpisah)
 export const deleteProgramTourByIndex = async (req, res) => {
@@ -338,5 +341,3 @@ export const deleteFacilityTourByIndex = async (req, res) => {
     res.status(500).json({ message: "Gagal menghapus fasilitas tour", error: error.message });
   }
 };
-
-
