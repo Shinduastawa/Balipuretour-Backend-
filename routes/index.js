@@ -5,7 +5,9 @@ import { LoginAdmin, RegisterAdmin, getAdminProfile, refreshTokenAdmin} from "..
 import { verifyToken } from "../middleware/verifyToken.js";
 import { verifyadmin } from "../middleware/verifyadmin.js";
 import { refreshToken } from "../controllers/RefreshToken.js";
-import { createPackageTourWithGaleries, updatePackageTourWithGaleriesAndRundown, getTourById, getTourGallery, getTourRundown, getAllPackageTours, deleteSingleGalleryImage } from "../controllers/PackageTour.js";
+import { createPackageTourWithGaleries, updatePackageTourWithGaleriesAndRundown, getTourById, getTourGallery, getTourRundown, getAllPackageTours, deleteSingleGalleryImage, deleteRundown,
+  deleteProgramTourByIndex,
+  deleteFacilityTourByIndex,  } from "../controllers/PackageTour.js";
 import { createCardDestination, updateCardDestination, deleteCardDestinationWithPackageTour, getCardDestinationById  } from "../controllers/CardDestination.js";
 import { getAllCardDestinations } from "../controllers/CardDestination.js";
 import { getGalleryImages } from "../controllers/CardDestination.js";
@@ -135,6 +137,10 @@ router.delete("/available-dates/:id_date", deleteAvailableDate);
 
 // untuk status update avlible
 router.post("/book-date", verifyToken, bookDate)
+
+router.delete("/tour/rundown/:id", deleteRundown);
+router.delete("/tour/:id_package/program/:index", deleteProgramTourByIndex);
+router.delete("/tour/:id_package/facility/:index", deleteFacilityTourByIndex);
 
 
 router.get("/getAllTransactions",  getAllTransactions);
