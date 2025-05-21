@@ -1,5 +1,6 @@
 import AvailableDates from "../models/AvailableDatesModel.js";
 import PackageTour from "../models/PackgeTourModel.js";
+import Booking from "../models/BookingModel.js";
 import Inbox from "../models/InboxModel.js";
 import db from "../config/Database.js";
 
