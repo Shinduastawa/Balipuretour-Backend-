@@ -293,6 +293,36 @@ export const deleteRundown = async (req, res) => {
   }
 };
 
+export const createRundown = async (req, res) => {
+  try {
+    const { time, description, id_package } = req.body;
+
+    const newRundown = await Rundown.create({ time, description, id_package });
+
+    res.status(201).json(newRundown);
+  } catch (error) {
+    res.status(500).json({ message: "Gagal menambahkan rundown", error: error.message });
+  }
+};
+
+export const updateRundown = async (req, res) => {
+  const { id } = req.params;
+  const { time, description } = req.body;
+
+  try {
+    const rundown = await Rundown.findByPk(id);
+    if (!rundown) return res.status(404).json({ message: "Rundown tidak ditemukan" });
+
+    rundown.time = time;
+    rundown.description = description;
+    await rundown.save();
+
+    res.status(200).json({ message: "Rundown berhasil diperbarui" });
+  } catch (error) {
+    res.status(500).json({ message: "Gagal memperbarui rundown", error: error.message });
+  }
+};
+
 
 // Hapus satu program tour berdasarkan ID (jika model terpisah)
 export const deleteProgramTourByIndex = async (req, res) => {
