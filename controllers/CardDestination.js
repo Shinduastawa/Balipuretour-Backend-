@@ -15,6 +15,8 @@ export const createCardDestination = async (req, res) => {
 
     try {
       const packageName = (req.body.package_name || req.query.package_name || "").trim();
+      console.log("package_name yang diterima:", req.body.package_name, req.query.package_name);
+
 
       const packageTour = await PackageTour.findOne({
         where: { package_name: packageName },
