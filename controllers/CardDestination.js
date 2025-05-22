@@ -14,9 +14,12 @@ export const createCardDestination = async (req, res) => {
     }
 
     try {
+      const packageName = (req.body.package_name || req.query.package_name || "").trim();
+
       const packageTour = await PackageTour.findOne({
-        where: { package_name: req.body.package_name?.trim() },
+        where: { package_name: packageName },
       });
+
 
       if (!packageTour) {
         return res.status(404).json({ message: "PackageTour tidak ditemukan" });
