@@ -71,21 +71,49 @@ export const generateInvoicePDF = async (transaction) => {
   });
 
   // Footer
-  const pageHeight = doc.internal.pageSize.height;
+  // === Footer ===
+  const finalY = doc.lastAutoTable.finalY || y + 40;
+
+  // Ucapan Terima Kasih
+  doc.setFont("helvetica", "italic");
   doc.setFontSize(10);
-  doc.text('Terima kasih telah memilih Bali Pure Tour!', leftX, pageHeight - 30);
+  doc.text("Thank you for choosing Bali Pure Tour!", leftX, finalY + 10);
+
+  // Info otomatis
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.text(
-    'This invoice is generated automatically and serves as a valid proof of payment.',
+    "This invoice is generated automatically and serves as a valid proof of payment.",
     leftX,
-    pageHeight - 22
+    finalY + 16
   );
+
+  // === Info Perusahaan (seperti gambar) ===
+  doc.setDrawColor(200);
+  doc.line(leftX, finalY + 24, pageWidth - 20, finalY + 24); // garis pemisah
+
+  doc.setFontSize(7.5);
+  doc.setFont("helvetica", "bold");
+  doc.text("PT. BALI PURE TOUR", pageWidth - 20, finalY + 30, { align: "right" });
+
+  doc.setFont("helvetica", "normal");
+  const footerLines = [
+    "Office, Operational & Marketing (Mailing Address):",
+    "Jl. Melati, Banjar Penempahan, Desa Manukaya, Kecamatan Tampaksiring, Kabupaten Gianyar, Bali 80552",
+    "Phone / WA: +62812 4652 5433",
+    "www.balipuretour.com | info.balipuretour@gmail.com"
+  ];
+
+  footerLines.forEach((line, idx) => {
+    doc.text(line, pageWidth - 20, finalY + 36 + (idx * 6), { align: "right" });
+  });
+
 
   // Simpan ke local
   const invoiceDir = path.join(__dirname, '../invoices');
   if (!fs.existsSync(invoiceDir)) fs.mkdirSync(invoiceDir, { recursive: true });
 
-  const invoicePath = path.join(invoiceDir, `invoice-${transaction.id_transaction}.pdf`);
+  const invoicePath = path.join(invoiceDir, `invoice.pdf`);
   fs.writeFileSync(invoicePath, Buffer.from(doc.output('arraybuffer')));
 
   console.log(`📄 Invoice disimpan di: ${invoicePath}`);
