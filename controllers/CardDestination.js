@@ -66,7 +66,7 @@ export const createCardDestination = async (req, res) => {
         id_package: packageTour.id_package,
         card_name: req.body.card_name,
         about_card: req.body.about_card,
-        description: req.body.description || "-", // Tambahkan ini
+        description: req.body.description,
         location: req.body.location,
         price: req.body.price,
         note_card: req.body.note_card,
