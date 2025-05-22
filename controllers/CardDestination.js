@@ -6,6 +6,7 @@ import Booking from "../models/BookingModel.js";
 import fs from "fs";
 import multer from "multer";
 import path from "path";
+import { Op } from "sequelize"; // ⬅️ Jangan lupa ini!
 
 export const createCardDestination = async (req, res) => {
   upload(req, res, async (err) => {
@@ -14,17 +15,49 @@ export const createCardDestination = async (req, res) => {
     }
 
     try {
-      const packageName = (req.body.package_name || req.query.package_name || "").trim();
-      console.log("package_name yang diterima:", req.body.package_name, req.query.package_name);
+      const rawName = req.body.package_name || req.query.package_name || "";
+      const packageName = rawName.trim();
+      const id_package = req.body.id_package || req.query.id_package;
 
+      console.log("package_name yang diterima:", `"${packageName}"`);
+      console.log("id_package yang diterima:", id_package);
 
-      const packageTour = await PackageTour.findOne({
-        where: { package_name: packageName },
-      });
+      let packageTour = null;
 
+      // 🔍 Jika ada id_package, cari langsung
+      if (id_package) {
+        packageTour = await PackageTour.findOne({ where: { id_package } });
+      }
+
+      // 🔍 Jika tidak ada id_package, cari dengan nama
+      if (!packageTour && packageName) {
+        packageTour = await PackageTour.findOne({
+          where: {
+            package_name: {
+              [Op.eq]: packageName
+            }
+          }
+        });
+      }
+
+      // 🔍 Jika masih tidak ditemukan, coba LIKE (fallback)
+      if (!packageTour && packageName) {
+        packageTour = await PackageTour.findOne({
+          where: {
+            package_name: {
+              [Op.like]: `%${packageName}%`
+            }
+          }
+        });
+      }
 
       if (!packageTour) {
-        return res.status(404).json({ message: "PackageTour tidak ditemukan" });
+        // Debug bantu developer lihat apa aja yang ada
+        const allPackages = await PackageTour.findAll();
+        console.log("Semua nama package:");
+        allPackages.forEach(p => console.log(`- "${p.package_name}"`));
+
+        return res.status(404).json({ message: "PackageTour tidak ditemukan", packageName });
       }
 
       const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
@@ -36,16 +69,18 @@ export const createCardDestination = async (req, res) => {
         location: req.body.location,
         price: req.body.price,
         note_card: req.body.note_card,
-        img: imageUrl, // Simpan gambar ke database
+        img: imageUrl,
       });
 
       res.status(201).json({ message: "Card destination berhasil disimpan", data: newCard });
 
     } catch (error) {
+      console.error("Error createCardDestination:", error);
       res.status(400).json({ message: "Gagal menyimpan card destination", error: error.message });
     }
   });
 };
+
 
 
 
