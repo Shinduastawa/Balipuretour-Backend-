@@ -15,7 +15,7 @@ export const createCardDestination = async (req, res) => {
 
     try {
       const packageTour = await PackageTour.findOne({
-        where: { package_name: req.body.package_name },
+        where: { package_name: req.body.package_name?.trim() },
       });
 
       if (!packageTour) {
