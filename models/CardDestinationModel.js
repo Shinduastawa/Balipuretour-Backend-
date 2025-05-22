@@ -19,6 +19,10 @@ const CardDestination = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+      description: { // ✅ Tambahkan ini
+      type: DataTypes.STRING, // atau TEXT kalau kamu ingin panjang
+      allowNull: false,       // atau true jika boleh kosong
+    },
     about_card: {
       type: DataTypes.TEXT,
       allowNull: false,
