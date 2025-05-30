@@ -68,7 +68,8 @@ export const createCardDestination = async (req, res) => {
         about_card: req.body.about_card,
         description: req.body.description,
         location: req.body.location,
-        price: req.body.price,
+        price_usd: req.body.price_usd,
+        price_idr: req.body.price_idr,
         note_card: req.body.note_card,
         img: imageUrl,
       });
@@ -117,7 +118,7 @@ export const updateCardDestination = async (req, res) => {
       }
 
       // Ambil data dari request body
-      const { card_name, about_card, location, price, note_card } = req.body;
+      const { card_name, about_card, location, price_usd, price_idr, note_card } = req.body;
 
       let imageUrl = cardDestination.img; // Default ke gambar lama
 
@@ -137,7 +138,8 @@ export const updateCardDestination = async (req, res) => {
         card_name: card_name || cardDestination.card_name,
         about_card: about_card || cardDestination.about_card,
         location: location || cardDestination.location_card,
-        price: price || cardDestination.price,
+        price_usd: price_usd || cardDestination.price_usd,
+        price_idr: price_idr || cardDestination.price_idr, // ⬅️ Tambahkan ini
         note_card: note_card || cardDestination.note_card,
         img: imageUrl, // Update gambar jika ada yang baru
       });
