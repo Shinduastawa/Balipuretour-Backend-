@@ -19,7 +19,7 @@ const CardDestination = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-      description: { // ✅ Tambahkan ini
+    description: { // ✅ Tambahkan ini
       type: DataTypes.STRING, // atau TEXT kalau kamu ingin panjang
       allowNull: false,       // atau true jika boleh kosong
     },
@@ -31,8 +31,12 @@ const CardDestination = db.define(
       type: DataTypes.TEXT,
       allowNull: false,
     },
-    price: {
+    price_usd: {
       type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+    price_idr: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     note_card: {
