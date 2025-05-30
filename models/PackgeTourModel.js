@@ -1,6 +1,6 @@
 import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
-import Galeries from "./GaleriesModel.js"; // Pastikan ini diimpor dengan benar
+import Galeries from "./GaleriesModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -26,7 +26,7 @@ const PackageTour = db.define(
       allowNull: false,
     },
 
-    // Semua harga di bawah ini dalam USD
+    // Harga dalam USD
     price_usd_2_5_person: {
       type: DataTypes.FLOAT,
       allowNull: false,
@@ -48,6 +48,28 @@ const PackageTour = db.define(
       allowNull: false,
     },
 
+    // Harga dalam IDR
+    price_idr_2_5_person: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    price_idr_6_10_person: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    price_idr_11_15_person: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    price_idr_16_20_person: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    price_idr_21_person_up: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+
     facility_tour: {
       type: DataTypes.TEXT,
       allowNull: false,
@@ -59,7 +81,7 @@ const PackageTour = db.define(
   },
   {
     freezeTableName: true,
-    tableName: 'packagetour' // ← Ini wajib di-set
+    tableName: 'packagetour'
   }
 );
 
