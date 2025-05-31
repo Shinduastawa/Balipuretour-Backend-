@@ -7,6 +7,7 @@ import AvailableDate from "../models/AvailableDatesModel.js"; // Pastikan model 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js"; // ✅ Tambahkan ini
+import { Op } from "sequelize";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
