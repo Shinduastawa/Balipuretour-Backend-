@@ -25,7 +25,7 @@ import {
   bookDate,
   getAvailableDatesSlot,
   updateAvailableDates,
-  getBookedDates,
+  getBookedDates, 
 } from "../controllers/AvailableDatesController.js";
 
 
@@ -36,7 +36,9 @@ import {
   getActivePackageTours,
   getRecentBookings,
   getAllPackagesWithDates,
-
+  getTodayTransactions,
+  getTodayRevenue,
+  getTodayBookings
 } from "../controllers/Dashboard.js";
 
 import {
@@ -94,6 +96,9 @@ router.get("/transaction/user/:userId", getLatestTransactionByUserId);
 
 
 router.get("/packages/available-dates", getAllPackagesWithDates);
+router.get('/transactions/today', getTodayTransactions);
+router.get('/revenue/today', getTodayRevenue);
+router.get('/bookings/today', getTodayBookings);
 
 
 router.get("/transactions/total", getTotalTransactions);
