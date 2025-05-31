@@ -25,7 +25,7 @@ import {
   bookDate,
   getAvailableDatesSlot,
   updateAvailableDates,
-  getBookedDates, 
+  getBookedDates,
 } from "../controllers/AvailableDatesController.js";
 
 
@@ -40,6 +40,7 @@ import {
   getTodayRevenue,
   getTodayBookings
 } from "../controllers/Dashboard.js";
+
 
 import {
   createInvoice,
