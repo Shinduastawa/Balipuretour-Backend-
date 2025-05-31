@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import midtransClient from "midtrans-client";
-import dayjs from "dayjs"; 
+import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js";
 import Transaction from "../models/TransactionModel.js";
@@ -264,5 +264,31 @@ export const getAllTransactions = async (req, res) => {
   } catch (error) {
     console.error("❌ Error fetching transactions:", error.message);
     res.status(500).json({ message: "Failed to fetch transactions", error: error.message });
+  }
+};
+
+export const getAllPaidTransactions = async (req, res) => {
+  try {
+    const transactions = await Transaction.findAll({
+      where: { payment_status: "paid" }, // ✅ Filter hanya transaksi yang paid
+      attributes: [
+        "id_transaction",
+        "order_id",
+        "full_name",
+        "package_name",
+        "transaction_date",
+        "payment_method",
+        "payment_status",
+      ],
+      order: [["transaction_date", "DESC"]], // Urutkan dari yang terbaru
+    });
+
+    res.json(transactions);
+  } catch (error) {
+    console.error("❌ Error fetching paid transactions:", error.message);
+    res.status(500).json({
+      message: "Failed to fetch paid transactions",
+      error: error.message,
+    });
   }
 };
