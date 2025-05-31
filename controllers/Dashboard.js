@@ -3,7 +3,11 @@ import PackageTour from "../models/PackgeTourModel.js";
 import Transaction from "../models/TransactionModel.js";
 import Booking from "../models/BookingModel.js";
 import AvailableDate from "../models/AvailableDatesModel.js"; // Pastikan model sudah ada
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc.js";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // ✅ Ambil Total Transaksi
 export const getTotalTransactions = async (req, res) => {
@@ -119,5 +123,63 @@ export const getAllPackagesWithDates = async (req, res) => {
   } catch (error) {
     console.error("❌ Error fetching packages with available dates:", error);
     res.status(500).json({ success: false, message: "Terjadi kesalahan", error: error.message });
+  }
+};
+
+export const getTodayTransactions = async (req, res) => {
+  try {
+    const todayStart = dayjs().tz("Asia/Makassar").startOf("day").toDate();
+
+    const count = await Transaction.count({
+      where: {
+        createdAt: {
+          [Op.gte]: todayStart,
+        },
+      },
+    });
+
+    res.status(200).json({ todayTransactions: count });
+  } catch (error) {
+    console.error("❌ Error fetching today transactions:", error);
+    res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
+  }
+};
+
+export const getTodayRevenue = async (req, res) => {
+  try {
+    const todayStart = dayjs().tz("Asia/Makassar").startOf("day").toDate();
+
+    const totalRevenue = await Transaction.sum("total_price", {
+      where: {
+        payment_status: "paid",
+        createdAt: {
+          [Op.gte]: todayStart,
+        },
+      },
+    });
+
+    res.status(200).json({ todayRevenue: totalRevenue || 0 });
+  } catch (error) {
+    console.error("❌ Error fetching today revenue:", error);
+    res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
+  }
+};
+
+export const getTodayBookings = async (req, res) => {
+  try {
+    const todayStart = dayjs().tz("Asia/Makassar").startOf("day").toDate();
+
+    const count = await Booking.count({
+      where: {
+        createdAt: {
+          [Op.gte]: todayStart,
+        },
+      },
+    });
+
+    res.status(200).json({ todayBookings: count });
+  } catch (error) {
+    console.error("❌ Error fetching today bookings:", error);
+    res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
