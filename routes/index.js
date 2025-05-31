@@ -13,7 +13,7 @@ import { getAllCardDestinations } from "../controllers/CardDestination.js";
 import { getGalleryImages } from "../controllers/CardDestination.js";
 import { uploadGalleryImages, updateGalleryImages  } from "../controllers/Galeries.js";
 import { createBooking , getUserBookings, getAllBookings, updateBookingStatusByAdmin, getBookingById, updateBookingStatus } from "../controllers/Booking.js";
-import { createPayment, paymentNotification,  getTransactionDetail, getAllTransactions } from "../controllers/Payment.js";
+import { createPayment, paymentNotification,  getTransactionDetail, getAllTransactions, getAllPaidTransactions } from "../controllers/Payment.js";
 import { authenticateUser } from "../middleware/authenticateUser.js"; // Pastikan import
 import { getTransactionByBookingId, getLatestTransactionByUserId  } from "../controllers/Transaction.js";
 import { authRole } from "../middleware/authRole.js";
@@ -81,6 +81,8 @@ router.get("/getUserBooking", verifyToken, getUserBookings);
 router.post("/create-payment", createPayment);
 router.post("/midtrans-notification", paymentNotification);
 router.get("/transaction/:order_id", getTransactionDetail); // ✅ Route untuk ambil detail transaksi
+
+router.get("/transactions/paid", getAllPaidTransactions);
 
 
 router.get("/getAllBookings", getAllBookings)
