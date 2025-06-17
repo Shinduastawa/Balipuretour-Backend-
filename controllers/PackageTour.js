@@ -21,7 +21,7 @@ export const getAllPackageTours = async (req, res) => {
 
 export const createPackageTourWithGaleries = async (req, res) => {
   try {
-    // 1️⃣ Validasi wajib
+    // 1️⃣ Validasi data penting
     if (!req.body.package_name || !req.body.price_usd_2_5_person) {
       return res.status(400).json({ message: "Data tidak lengkap!" });
     }
@@ -37,7 +37,7 @@ export const createPackageTourWithGaleries = async (req, res) => {
       ? req.body.facility_tour.join(". ")
       : req.body.facility_tour || "";
 
-    // 3️⃣ Simpan data utama
+    // 3️⃣ Simpan data utama (paket tour)
     const newPackage = await PackageTour.create({
       package_name: req.body.package_name,
       about_package: req.body.about_package,
@@ -61,30 +61,30 @@ export const createPackageTourWithGaleries = async (req, res) => {
 
     console.log("✅ ID Paket Tour:", packageId);
 
-    // 4️⃣ Buat folder galeri
+    // 4️⃣ Buat folder penyimpanan galeri
     const galleryDir = path.join("public", `gallery_${packageId}`);
     if (!fs.existsSync(galleryDir)) {
       fs.mkdirSync(galleryDir, { recursive: true });
     }
 
-    // 5️⃣ Simpan gambar ke folder & DB
+    // 5️⃣ Simpan file gambar dari memory buffer
     let galeriesData = [];
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
         const filename = `${Date.now()}_${file.originalname}`;
         const savePath = path.join(galleryDir, filename);
-        fs.writeFileSync(savePath, file.buffer);
+        fs.writeFileSync(savePath, file.buffer); // ✅ simpan dari memory buffer
 
         galeriesData.push({
           id_package: packageId,
-          img: `/gallery_${packageId}/${filename}`,
+          img: `/gallery_${packageId}/${filename}`, // URL untuk frontend
         });
       }
 
       await Galeries.bulkCreate(galeriesData);
     }
 
-    // 6️⃣ Simpan rundown (opsional)
+    // 6️⃣ Simpan rundown jika ada
     let rundownData = [];
     if (req.body.Rundown) {
       const parsedRundown = Array.isArray(req.body.Rundown)
@@ -101,13 +101,14 @@ export const createPackageTourWithGaleries = async (req, res) => {
       await Rundown.bulkCreate(rundownData);
     }
 
-    // 7️⃣ Response
+    // 7️⃣ Response sukses
     res.status(201).json({
       message: "Paket tour berhasil disimpan!",
       data: newPackage,
       galeries: galeriesData,
       rundown: rundownData,
     });
+
   } catch (error) {
     console.error("❌ Error saat menyimpan paket tour:", error);
     res.status(500).json({ message: "Terjadi kesalahan!", error: error.message });
