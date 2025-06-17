@@ -69,7 +69,7 @@ export const updateGalleryImages = async (req, res) => {
 
     try {
       const { id_package } = req.params;
-      const { remainingImageIds, category } = req.body;
+      let { remainingImageIds, category } = req.body;
 
       if (!id_package) {
         return res.status(400).json({
@@ -77,7 +77,12 @@ export const updateGalleryImages = async (req, res) => {
         });
       }
 
-      // ✅ Hapus gambar yang tidak dipertahankan, hanya jika remainingImageIds dikirim
+      // 🔁 Fallback category jika tidak ada (auto: gallery_<id>)
+      if (!category) {
+        category = `gallery_${id_package}`;
+      }
+
+      // 🧹 Hapus gambar yang tidak dipertahankan
       if (remainingImageIds) {
         let remainingIds = [];
         try {
@@ -88,7 +93,6 @@ export const updateGalleryImages = async (req, res) => {
           });
         }
 
-        // Cek apakah array dan ada isinya
         if (Array.isArray(remainingIds) && remainingIds.length > 0) {
           await Galeries.destroy({
             where: {
@@ -99,7 +103,7 @@ export const updateGalleryImages = async (req, res) => {
         }
       }
 
-      // ✅ Upload gambar baru jika ada
+      // 💾 Simpan gambar baru jika ada
       if (req.files && req.files.newImages) {
         const files = Array.isArray(req.files.newImages)
           ? req.files.newImages
@@ -107,7 +111,7 @@ export const updateGalleryImages = async (req, res) => {
 
         const galeriesData = files.map((file) => ({
           id_package,
-          img: `/${category || "default"}/${file.filename}`,
+          img: `/${category}/${file.filename}`,
         }));
 
         await Galeries.bulkCreate(galeriesData);
