@@ -67,22 +67,23 @@ export const createPackageTourWithGaleries = async (req, res) => {
       fs.mkdirSync(galleryDir, { recursive: true });
     }
 
-    // 5️⃣ Simpan gambar dari memori ke folder
     let galeriesData = [];
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-        const filename = `${Date.now()}_${file.originalname}`;
+        const sanitizedName = file.originalname.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_.-]/g, "");
+        const filename = `${Date.now()}_${sanitizedName}`;
         const filepath = path.join(galleryDir, filename);
 
         fs.writeFileSync(filepath, file.buffer); // ✅ simpan dari buffer
         galeriesData.push({
           id_package: packageId,
-          img: `/gallery_${packageId}/${filename}`, // path akses gambar untuk frontend
+          img: `/gallery_${packageId}/${filename}`, // URL untuk frontend
         });
       }
 
       await Galeries.bulkCreate(galeriesData);
     }
+
 
     // 6️⃣ Simpan rundown
     let rundownData = [];
