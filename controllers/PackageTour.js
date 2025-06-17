@@ -49,9 +49,15 @@ export const createPackageTourWithGaleries = async (req, res) => {
       price_usd_11_15_person: req.body.price_usd_11_15_person,
       price_usd_16_20_person: req.body.price_usd_16_20_person,
       price_usd_21_person_up: req.body.price_usd_21_person_up,
+      price_idr_2_5_person: req.body.price_idr_2_5_person,
+      price_idr_6_10_person: req.body.price_idr_6_10_person,
+      price_idr_11_15_person: req.body.price_idr_11_15_person,
+      price_idr_16_20_person: req.body.price_idr_16_20_person,
+      price_idr_21_person_up: req.body.price_idr_21_person_up,
       facility_tour: facilityTour,
       contact_pt: req.body.contact_pt,
     });
+
 
     // Dapatkan ID Paket Tour
     const packageId = newPackage.id || newPackage.id_package;
