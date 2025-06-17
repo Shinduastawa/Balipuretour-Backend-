@@ -21,14 +21,14 @@ export const getAllPackageTours = async (req, res) => {
 
 export const createPackageTourWithGaleries = async (req, res) => {
   try {
-    // Validasi Input
+    // 1️⃣ Validasi wajib
     if (!req.body.package_name || !req.body.price_usd_2_5_person) {
       return res.status(400).json({ message: "Data tidak lengkap!" });
     }
 
     console.log("📥 Data yang diterima di backend:", req.body);
 
-    // Konversi program_tour & facility_tour ke string
+    // 2️⃣ Format program & fasilitas
     const programTour = Array.isArray(req.body.program_tour)
       ? req.body.program_tour.join(". ")
       : req.body.program_tour || "";
@@ -37,7 +37,7 @@ export const createPackageTourWithGaleries = async (req, res) => {
       ? req.body.facility_tour.join(". ")
       : req.body.facility_tour || "";
 
-    // Simpan Paket Tour dulu (tanpa galeri dulu)
+    // 3️⃣ Simpan data utama
     const newPackage = await PackageTour.create({
       package_name: req.body.package_name,
       about_package: req.body.about_package,
@@ -56,29 +56,35 @@ export const createPackageTourWithGaleries = async (req, res) => {
       contact_pt: req.body.contact_pt,
     });
 
-    const packageId = newPackage.id || newPackage.id_package;
-    if (!packageId) {
-      return res.status(400).json({ message: "Gagal mendapatkan ID PackageTour" });
-    }
+    const packageId = newPackage.id_package || newPackage.id;
+    if (!packageId) return res.status(400).json({ message: "Gagal mendapatkan ID PackageTour" });
 
     console.log("✅ ID Paket Tour:", packageId);
 
-    // ✅ Gunakan folder berdasarkan ID, bukan nama
-    const folderPath = `/gallery_${packageId}`;
-    console.log("Folder path:", folderPath);
+    // 4️⃣ Buat folder galeri
+    const galleryDir = path.join("public", `gallery_${packageId}`);
+    if (!fs.existsSync(galleryDir)) {
+      fs.mkdirSync(galleryDir, { recursive: true });
+    }
 
-    // Simpan galeri
+    // 5️⃣ Simpan gambar ke folder & DB
     let galeriesData = [];
     if (req.files && req.files.length > 0) {
-      galeriesData = req.files.map((file) => ({
-        id_package: packageId,
-        img: `${folderPath}/${file.filename}`,
-      }));
+      for (const file of req.files) {
+        const filename = `${Date.now()}_${file.originalname}`;
+        const savePath = path.join(galleryDir, filename);
+        fs.writeFileSync(savePath, file.buffer);
+
+        galeriesData.push({
+          id_package: packageId,
+          img: `/gallery_${packageId}/${filename}`,
+        });
+      }
 
       await Galeries.bulkCreate(galeriesData);
     }
 
-    // Simpan rundown (jika ada)
+    // 6️⃣ Simpan rundown (opsional)
     let rundownData = [];
     if (req.body.Rundown) {
       const parsedRundown = Array.isArray(req.body.Rundown)
@@ -95,7 +101,7 @@ export const createPackageTourWithGaleries = async (req, res) => {
       await Rundown.bulkCreate(rundownData);
     }
 
-    // Kirim respons sukses
+    // 7️⃣ Response
     res.status(201).json({
       message: "Paket tour berhasil disimpan!",
       data: newPackage,
