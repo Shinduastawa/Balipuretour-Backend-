@@ -166,22 +166,22 @@ try {
 } catch (error) {
   console.error("Error updating database:", error);
 }
+
 // Middleware setup
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 📁 Serve direktori gambar
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/public", express.static(path.join(__dirname, "public")));
-app.use("/default", express.static(path.join(__dirname, "public/default")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/tour-gallery", express.static(path.join(__dirname, "public/tour-gallery")));
+app.use("/default", express.static(path.join(__dirname, "public/default")));
 
-// ✅ ⬇️ Ini bagian TERPENTING agar semua /gallery_<id> bisa diakses
+// ✅ Tambahkan ini (regex static route handler)
 app.use(/^\/gallery_\d+/, express.static(path.join(__dirname, "public")));
 
-// 📦 Fallback untuk semua file di public
+// 📦 Fallback
 app.use(express.static(path.join(__dirname, "public")));
 
 
