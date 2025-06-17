@@ -52,32 +52,16 @@ try {
 }
 
 // Middleware setup
-// app.use(cors(corsOptions));  // Gunakan CORS
-// app.use(cookieParser());  // Middleware cookie-parser
-// app.use(express.json());  // Middleware untuk menerima JSON
-// app.use(express.urlencoded({ extended: true }));  // Middleware untuk URL encoding
-// app.use("/public", express.static("public"));
-// app.use("/uploads", express.static(path.join(__dirname, "uploads")));  // Menyediakan akses untuk folder uploads
-// app.use(express.static(path.join(__dirname, "public")));  // Static files (misalnya gambar, CSS, dll.)
-// app.use('/tour-gallery', express.static(path.join(__dirname, 'public/tour-gallery')));
-// app.use('/default', express.static(path.join(__dirname, 'public/default')));
-// app.use(express.static("public")); // ✅ Ini yang membuat /gallery_xx bisa diakses
-
-
-// ✅ Middleware Setup
-app.use(cors(corsOptions));
-app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// ✅ Serve static files (umum)
+app.use(cors(corsOptions));  // Gunakan CORS
+app.use(cookieParser());  // Middleware cookie-parser
+app.use(express.json());  // Middleware untuk menerima JSON
+app.use(express.urlencoded({ extended: true }));  // Middleware untuk URL encoding
 app.use("/public", express.static("public"));
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use("/tour-gallery", express.static(path.join(__dirname, "public/tour-gallery")));
-app.use("/default", express.static(path.join(__dirname, "public/default")));
-
-// ✅ Serve dynamic gallery folders like /gallery_101, /gallery_102
-app.use(/^\/gallery_\d+/, express.static(path.join(__dirname, "public")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));  // Menyediakan akses untuk folder uploads
+app.use(express.static(path.join(__dirname, "public")));  // Static files (misalnya gambar, CSS, dll.)
+app.use('/tour-gallery', express.static(path.join(__dirname, 'public/tour-gallery')));
+app.use('/default', express.static(path.join(__dirname, 'public/default')));
+app.use(express.static("public")); // ✅ Ini yang membuat /gallery_xx bisa diakses
 
 // Buat folder uploads jika belum ada
 const uploadDir = path.join(__dirname, "uploads");
