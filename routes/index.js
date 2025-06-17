@@ -156,10 +156,10 @@ router.get("/getAllTransactions",  getAllTransactions);
 
 // Get paket-tour
 router.get("/get-packages", getAllPackageTours)
+
 // kelola paket tour
-router.post("/package-tour", upload.array("galeries", 10), (req, res, next) => {
-  next();
-}, createPackageTourWithGaleries);
+router.post("/package-tour", upload.array("galeries", 10), createPackageTourWithGaleries);
+
 
 // update paket tour
 router.put("/package-tour-update/:id_package", updatePackageTourWithGaleriesAndRundown);
