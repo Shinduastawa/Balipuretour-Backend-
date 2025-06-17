@@ -1,45 +1,55 @@
-import fs from "fs";
 import multer from "multer";
+import fs from "fs";
 import path from "path";
 import { Op } from "sequelize";
 import Galeries from "../models/GaleriesModel.js";
 
-// **Konfigurasi multer untuk menyimpan gambar berdasarkan kategori**
+// Konfigurasi multer dengan penyimpanan dinamis ke folder gallery_<id_package>
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const category = req.body.category || "default";
-    const uploadPath = `public/${category}`;
+    const id_package = req.body.id_package || req.query.id_package;
+    const category = req.body.category || `gallery_${id_package || "default"}`;
+
+    const uploadPath = path.join("public", category);
+
+    // Buat folder jika belum ada
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
+
+    // Simpan path folder dan category ke req untuk digunakan nanti
+    req.__galleryCategory = category;
     cb(null, uploadPath);
   },
+
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
+    const filename = Date.now() + path.extname(file.originalname);
+    req.__uploadedFileName = filename;
+    cb(null, filename);
   },
 });
 
+// Untuk form upload banyak gambar (galeri)
 const uploadGallery = multer({ storage }).fields([
   { name: "newImages", maxCount: 10 },
 ]);
 
+// Untuk form upload 1 gambar (card destinasi)
+const uploadSingle = multer({ storage }).single("image");
+
+// ========== ENDPOINT 1: Upload Galeri Baru ==========
 export const uploadGalleryImages = async (req, res) => {
-  multer({ storage }).array("images", 10)(req, res, async (err) => {
-    if (err) {
-      return res.status(500).json({ message: "Gagal mengupload gambar", error: err.message });
-    }
+  uploadGallery(req, res, async (err) => {
+    if (err) return res.status(500).json({ message: "Gagal mengupload gambar", error: err.message });
 
     try {
-      const { id_package, category } = req.body;
-      if (!id_package) {
-        return res.status(400).json({ message: "ID package harus disertakan" });
-      }
+      const { id_package } = req.body;
+      const category = req.__galleryCategory;
 
-      if (!req.files || req.files.length === 0) {
-        return res.status(400).json({ message: "File gambar tidak ditemukan" });
-      }
+      if (!id_package) return res.status(400).json({ message: "ID package harus disertakan" });
+      if (!req.files || !req.files.newImages) return res.status(400).json({ message: "File gambar tidak ditemukan" });
 
-      const galeriesData = req.files.map((file) => ({
+      const galeriesData = req.files.newImages.map((file) => ({
         id_package,
         img: `/${category}/${file.filename}`,
       }));
@@ -56,59 +66,41 @@ export const uploadGalleryImages = async (req, res) => {
   });
 };
 
-
+// ========== ENDPOINT 2: Update Galeri ==========
 
 export const updateGalleryImages = async (req, res) => {
   uploadGallery(req, res, async (err) => {
-    if (err) {
-      return res.status(500).json({
-        message: "Gagal mengupload gambar",
-        error: err.message,
-      });
-    }
+    if (err) return res.status(500).json({ message: "Gagal mengupload gambar", error: err.message });
 
     try {
       const { id_package } = req.params;
-      let { remainingImageIds, category } = req.body;
+      let { remainingImageIds } = req.body;
+      const category = req.__galleryCategory;
 
-      if (!id_package) {
-        return res.status(400).json({
-          message: "ID package harus disertakan",
-        });
-      }
+      if (!id_package) return res.status(400).json({ message: "ID package harus disertakan" });
 
-      // 🔁 Fallback category jika tidak ada (auto: gallery_<id>)
-      if (!category) {
-        category = `gallery_${id_package}`;
-      }
-
-      // 🧹 Hapus gambar yang tidak dipertahankan
+      // Hapus gambar yang tidak dipertahankan
       if (remainingImageIds) {
-        let remainingIds = [];
+        let keepIds = [];
         try {
-          remainingIds = JSON.parse(remainingImageIds);
-        } catch (parseErr) {
-          return res.status(400).json({
-            message: "Format remainingImageIds tidak valid (harus JSON array)",
-          });
+          keepIds = JSON.parse(remainingImageIds);
+        } catch {
+          return res.status(400).json({ message: "Format remainingImageIds tidak valid (harus JSON array)" });
         }
 
-        if (Array.isArray(remainingIds) && remainingIds.length > 0) {
+        if (Array.isArray(keepIds) && keepIds.length > 0) {
           await Galeries.destroy({
             where: {
               id_package,
-              id: { [Op.notIn]: remainingIds },
+              id: { [Op.notIn]: keepIds },
             },
           });
         }
       }
 
-      // 💾 Simpan gambar baru jika ada
+      // Upload gambar baru jika ada
       if (req.files && req.files.newImages) {
-        const files = Array.isArray(req.files.newImages)
-          ? req.files.newImages
-          : [req.files.newImages];
-
+        const files = req.files.newImages;
         const galeriesData = files.map((file) => ({
           id_package,
           img: `/${category}/${file.filename}`,
@@ -117,15 +109,11 @@ export const updateGalleryImages = async (req, res) => {
         await Galeries.bulkCreate(galeriesData);
       }
 
-      res.status(200).json({
-        message: "Galeri berhasil diperbarui",
-      });
+      res.status(200).json({ message: "Galeri berhasil diperbarui" });
     } catch (error) {
-      console.error("❌ Gagal update galeri:", error);
-      res.status(500).json({
-        message: "Terjadi kesalahan",
-        error: error.message,
-      });
+      res.status(500).json({ message: "Gagal update galeri", error: error.message });
     }
   });
 };
+
+export { uploadSingle };
