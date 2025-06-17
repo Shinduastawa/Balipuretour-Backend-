@@ -177,6 +177,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));  // Menyed
 app.use(express.static(path.join(__dirname, "public")));  // Static files (misalnya gambar, CSS, dll.)
 app.use('/tour-gallery', express.static(path.join(__dirname, 'public/tour-gallery')));
 app.use('/default', express.static(path.join(__dirname, 'public/default')));
+app.use(express.static("public")); // ✅ Ini yang membuat /gallery_xx bisa diakses
 
 // Buat folder uploads jika belum ada
 const uploadDir = path.join(__dirname, "uploads");
