@@ -7,17 +7,15 @@ import Galeries from "../models/GaleriesModel.js";
 // Konfigurasi multer dengan penyimpanan dinamis ke folder gallery_<id_package>
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const id_package = req.body.id_package || req.query.id_package;
-    const category = req.body.category || `gallery_${id_package || "default"}`;
+    const id_package = req.body.id_package || req.params.id_package || req.query.id_package;
+    const fallbackCategory = `gallery_${id_package || "default"}`;
+    const category = req.query.category || fallbackCategory;
 
     const uploadPath = path.join("public", category);
-
-    // Buat folder jika belum ada
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
 
-    // Simpan path folder dan category ke req untuk digunakan nanti
     req.__galleryCategory = category;
     cb(null, uploadPath);
   },
