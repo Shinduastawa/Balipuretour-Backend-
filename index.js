@@ -168,21 +168,31 @@ try {
 }
 
 // Middleware setup
+// app.use(cors(corsOptions));  // Gunakan CORS
+// app.use(cookieParser());  // Middleware cookie-parser
+// app.use(express.json());  // Middleware untuk menerima JSON
+// app.use(express.urlencoded({ extended: true }));  // Middleware untuk URL encoding
+// app.use("/public", express.static("public"));
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));  // Menyediakan akses untuk folder uploads
+// app.use(express.static(path.join(__dirname, "public")));  // Static files (misalnya gambar, CSS, dll.)
+// app.use('/tour-gallery', express.static(path.join(__dirname, 'public/tour-gallery')));
+// app.use('/default', express.static(path.join(__dirname, 'public/default')));
+// Middleware setup
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/public", express.static(path.join(__dirname, "public")));
+// ⛳ Expose seluruh folder public secara langsung
+app.use(express.static(path.join(__dirname, "public"))); // <<=== penting
+
+// Tambahan opsional (boleh tetap ada)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/tour-gallery", express.static(path.join(__dirname, "public/tour-gallery")));
 app.use("/default", express.static(path.join(__dirname, "public/default")));
 
-// ✅ Tambahkan ini (regex static route handler)
-app.use(/^\/gallery_\d+/, express.static(path.join(__dirname, "public")));
-
-// 📦 Fallback
-app.use(express.static(path.join(__dirname, "public")));
+// Gunakan router utama setelah static middleware
+app.use(router);
 
 
 // Buat folder uploads jika belum ada
