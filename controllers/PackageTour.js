@@ -26,11 +26,9 @@ export const createPackageTourWithGaleries = async (req, res) => {
       return res.status(400).json({ message: "Data tidak lengkap!" });
     }
 
-    // Log input body untuk debugging
-    console.log("Data yang diterima di backend:", req.body);
-    console.log("File yang diterima di backend:", req.files);
+    console.log("📥 Data yang diterima di backend:", req.body);
 
-    // Konversi program_tour & facility_tour agar selalu string
+    // Konversi program_tour & facility_tour ke string
     const programTour = Array.isArray(req.body.program_tour)
       ? req.body.program_tour.join(". ")
       : req.body.program_tour || "";
@@ -39,7 +37,7 @@ export const createPackageTourWithGaleries = async (req, res) => {
       ? req.body.facility_tour.join(". ")
       : req.body.facility_tour || "";
 
-    // Simpan Data Paket Tour
+    // Simpan Paket Tour dulu (tanpa galeri dulu)
     const newPackage = await PackageTour.create({
       package_name: req.body.package_name,
       about_package: req.body.about_package,
@@ -58,20 +56,18 @@ export const createPackageTourWithGaleries = async (req, res) => {
       contact_pt: req.body.contact_pt,
     });
 
-
-    // Dapatkan ID Paket Tour
     const packageId = newPackage.id || newPackage.id_package;
     if (!packageId) {
       return res.status(400).json({ message: "Gagal mendapatkan ID PackageTour" });
     }
 
-    console.log("ID Paket Tour yang baru disimpan:", packageId);
+    console.log("✅ ID Paket Tour:", packageId);
 
-    // Nama Folder Dinamis
-    const packageName = req.body.package_name.replace(/\s+/g, "_").toLowerCase();
-    const folderPath = `/gallery_${packageName}`;
+    // ✅ Gunakan folder berdasarkan ID, bukan nama
+    const folderPath = `/gallery_${packageId}`;
+    console.log("Folder path:", folderPath);
 
-    // Simpan Galeri ke Database
+    // Simpan galeri
     let galeriesData = [];
     if (req.files && req.files.length > 0) {
       galeriesData = req.files.map((file) => ({
@@ -79,14 +75,16 @@ export const createPackageTourWithGaleries = async (req, res) => {
         img: `${folderPath}/${file.filename}`,
       }));
 
-      console.log("Galeri yang akan disimpan:", galeriesData);
       await Galeries.bulkCreate(galeriesData);
     }
 
-    // Simpan Rundown ke Database
+    // Simpan rundown (jika ada)
     let rundownData = [];
     if (req.body.Rundown) {
-      const parsedRundown = Array.isArray(req.body.Rundown) ? req.body.Rundown : JSON.parse(req.body.Rundown);
+      const parsedRundown = Array.isArray(req.body.Rundown)
+        ? req.body.Rundown
+        : JSON.parse(req.body.Rundown);
+
       rundownData = parsedRundown.map((rundown) => ({
         id_package: packageId,
         day: rundown.day,
@@ -94,11 +92,10 @@ export const createPackageTourWithGaleries = async (req, res) => {
         description: rundown.description,
       }));
 
-      console.log("Rundown yang akan disimpan:", rundownData);
       await Rundown.bulkCreate(rundownData);
     }
 
-    // Kirimkan Response
+    // Kirim respons sukses
     res.status(201).json({
       message: "Paket tour berhasil disimpan!",
       data: newPackage,
@@ -106,10 +103,11 @@ export const createPackageTourWithGaleries = async (req, res) => {
       rundown: rundownData,
     });
   } catch (error) {
-    console.error("Error saat menyimpan data:", error);
+    console.error("❌ Error saat menyimpan paket tour:", error);
     res.status(500).json({ message: "Terjadi kesalahan!", error: error.message });
   }
 };
+
 
 
 
