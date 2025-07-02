@@ -388,7 +388,7 @@ export const deleteAvailableDateById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const deleted = await AvailableDates.destroy({ where: { id } });
+    const deleted = await AvailableDates.destroy({ where: { id_package: packageId } });
     if (deleted === 0) {
       return res.status(404).json({ message: "Available date tidak ditemukan" });
     }
