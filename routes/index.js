@@ -7,7 +7,7 @@ import { verifyadmin } from "../middleware/verifyadmin.js";
 import { refreshToken } from "../controllers/RefreshToken.js";
 import { createPackageTourWithGaleries, updatePackageTourWithGaleriesAndRundown, getTourById, getTourGallery, getTourRundown, getAllPackageTours, deleteSingleGalleryImage, deleteRundown,
   deleteProgramTourByIndex,
-  deleteFacilityTourByIndex, createRundown, updateRundown} from "../controllers/PackageTour.js";
+  deleteFacilityTourByIndex, createRundown, updateRundown, deleteAvailableDateById } from "../controllers/PackageTour.js";
 import { createCardDestination, updateCardDestination, deleteCardDestinationWithPackageTour, getCardDestinationById  } from "../controllers/CardDestination.js";
 import { getAllCardDestinations } from "../controllers/CardDestination.js";
 import { getGalleryImages } from "../controllers/CardDestination.js";
@@ -187,6 +187,8 @@ router.put("/update-gallery/:id_package", updateGalleryImages); // Perhatikan na
 // Dalate Card Tour dan Package Tour
 router.delete('/card-destination-dalate/:id', deleteCardDestinationWithPackageTour);
 
+// Dalate Date Avlible
+router.delete("/available-dates/:id_date", deleteAvailableDateById);
 // get data paket tour
 
 router.get("/package-tour/:id", getTourById);
