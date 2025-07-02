@@ -1,6 +1,7 @@
 import PackageTour from "../models/PackgeTourModel.js";
 import Galeries from "../models/GaleriesModel.js";
 import Rundown from "../models/RundownModel.js";
+import AvailableDates from "../models/AvailableDatesModel.js";
 import upload from "../middleware/uploadimg.js";
 import fs from "fs";
 import path from "path";
@@ -380,5 +381,19 @@ export const deleteFacilityTourByIndex = async (req, res) => {
     res.status(200).json({ message: "Fasilitas tour berhasil dihapus", facility_tour: tour.facility_tour });
   } catch (error) {
     res.status(500).json({ message: "Gagal menghapus fasilitas tour", error: error.message });
+  }
+};
+
+export const deleteAvailableDateById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deleted = await AvailableDates.destroy({ where: { id } });
+    if (deleted === 0) {
+      return res.status(404).json({ message: "Available date tidak ditemukan" });
+    }
+    res.status(200).json({ message: "Available date berhasil dihapus" });
+  } catch (error) {
+    res.status(500).json({ message: "Gagal menghapus available date", error: error.message });
   }
 };
