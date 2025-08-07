@@ -147,7 +147,7 @@ export const Register = async (req, res) => {
     res.json({ msg: "Registration successful! Please check your email for verification." });
 
   } catch (error) {
-    console.error("Error during registration:", error); // Tampilkan stack trace
+    logger.error ("Error during registration:", error); // Tampilkan stack trace
     return res.status(500).json({
       msg: "An error occurred during registration",
       error: error.message,
@@ -247,7 +247,7 @@ export const Logout = async (req, res) => {
 
   } catch (error) {
     // Jika ada error, log dan kirim status 500 (Internal Server Error)
-    console.error(error);
+    logger.error (error);
     return res.sendStatus(500);
   }
 };
@@ -293,7 +293,7 @@ export const UpdateUser = async (req, res) => {
       });
     });
   } catch (error) {
-    console.error("Error updating profile:", error);
+    logger.error ("Error updating profile:", error);
     res.sendStatus(500);
   }
 };
@@ -326,7 +326,7 @@ export const RegisterGoogle = async (req, res) => {
 
     res.status(201).json({ msg: "Registrasi berhasil", user: newUser });
   } catch (error) {
-    console.error("Error saat registrasi dengan Google:", error);
+    logger.error ("Error saat registrasi dengan Google:", error);
     res.status(500).json({ msg: "Terjadi kesalahan saat registrasi dengan Google", error: error.message });
   }
 };
@@ -471,7 +471,7 @@ export const Verifyemail = async (req, res) => {
       return res.status(400).json({ msg: "Email belum diverifikasi!" });
     }
   } catch (error) {
-    console.error("Error verifikasi email:", error);
+    logger.error ("Error verifikasi email:", error);
     return res.status(500).json({ msg: "Terjadi kesalahan saat memverifikasi email.", error: error.message });
   }
 };
