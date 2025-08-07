@@ -12,6 +12,8 @@ import fs from "fs";
 import multer from "multer";
 import { fileURLToPath } from "url";
 import CardDestinationModel from "./models/CardDestinationModel.js";
+import logger from "./utils/logger.js"; 
+
 
 
 // Load environment variables
@@ -25,7 +27,7 @@ const __dirname = path.dirname(__filename);
 admin
   .auth()
   .listUsers(1)
-  .then(() => console.log("Firebase Admin SDK terhubung"))
+  .then(() => logger.info("Firebase Admin SDK terhubung"))
   .catch((error) => console.error("Firebase Admin SDK error:", error));
 
 const app = express();
@@ -44,9 +46,9 @@ const corsOptions = {
 
 try {
   await db.authenticate();
-  console.log("Database Connected......");
+  logger.info("Database Connected......");
   await CardDestinationModel.sync({ alter: true }); // Sync dengan perubahan struktur
-  console.log("CardDestinationModel table updated!");
+  logger.info("CardDestinationModel table updated!");
 } catch (error) {
   console.error("Error updating database:", error);
 }
@@ -90,16 +92,16 @@ app.get("/", (req, res) => {
 
 // Middleware untuk log setiap request
 app.use((req, res, next) => {
-  console.log(`Request masuk: ${req.method} ${req.url}`);
+  logger.info(`Request masuk: ${req.method} ${req.url}`);
   next();
 });
 
 // Koneksi ke database
 try {
   await db.authenticate();  // Menghubungkan ke database
-  console.log("✅ Database Connected");
+  logger.info("✅ Database Connected");
 
-  console.log("✅ AvailableDates table is synced.");
+  logger.info("✅ AvailableDates table is synced.");
 } catch (error) {
   console.error("❌ Database connection error:", error);
 }
@@ -107,5 +109,5 @@ try {
 // Jalankan server pada port yang ditentukan (default: 5000)
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at port ${PORT}`);
+  logger.info(`🚀 Server running at port ${PORT}`);
 });
