@@ -1,6 +1,7 @@
 
 import Transaction from '../models/TransactionModel.js';
 import midtransClient from 'midtrans-client';
+import logger from "../utils/logger.js";
 
 let apiClient = new midtransClient.Snap({
     isProduction: false,

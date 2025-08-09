@@ -2,6 +2,8 @@
 import jwt from "jsonwebtoken";
 import bcryptjs from "bcryptjs";
 import Admin from "../models/AdminModel.js";
+import logger from "../utils/logger.js";
+
 
 export const LoginAdmin = async (req, res) => {
   const { email, password } = req.body;
@@ -51,7 +53,7 @@ export const LoginAdmin = async (req, res) => {
     res.json({ accessToken, admin });
 
   } catch (error) {
-    console.error("Error login admin:", error);
+    logger.error("Error login admin:", error);
     res.status(500).json({ msg: "Terjadi kesalahan pada server" });
   }
 };
@@ -88,7 +90,7 @@ export const RegisterAdmin = async (req, res) => {
 
 export const getAdminProfile = async (req, res) => {
   try {
-    console.log("Decoded Admin ID:", req.admin.id_admin);
+    logger.info("Decoded Admin ID:", req.admin.id_admin);
 
     const adminData = await Admin.findOne({
       where: { id_admin: req.admin.id_admin },
@@ -103,7 +105,7 @@ export const getAdminProfile = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error mengambil data admin:", error);
+    logger.error("Error mengambil data admin:", error);
     res.status(500).json({ message: "Kesalahan server" });
   }
 };
@@ -136,7 +138,7 @@ export const refreshTokenAdmin = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error refresh admin token:", error);
+    logger.error("Error refresh admin token:", error);
     res.sendStatus(500);
   }
 };

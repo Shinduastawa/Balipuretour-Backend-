@@ -3,22 +3,24 @@ import PackageTour from "../models/PackgeTourModel.js";
 import Inbox from "../models/InboxModel.js"; // ⬅️ Tambahin ini di atas
 import AvailableDates from "../models/AvailableDatesModel.js";
 import nodemailer from "nodemailer";
+import logger from "../utils/logger.js";
+
 
 // ✅ Buat Booking Baru
 export const createBooking = async (req, res) => {
   try {
-    console.log("🔍 User dari Token:", req.user); // Debug user dari token
+   logger.info("🔍 User dari Token:", req.user); // Debug user dari token
 
     const { full_name, email, phone_number, id_package, package_name, num_participants, checkin_date, price, price_idr, id_date } = req.body;
     const user_id = req.user?.id; // Gunakan req.user.id
 
     if (!user_id) {
-      console.error("❌ User tidak terautentikasi!");
+      logger.error("❌ User tidak terautentikasi!");
       return res.status(401).json({ message: "User tidak terautentikasi" });
     }
 
     if (!full_name || !phone_number || !id_package || !num_participants || !checkin_date || !price) {
-      console.error("❌ Data booking tidak lengkap!");
+      logger.error("❌ Data booking tidak lengkap!");
       return res.status(400).json({ message: "Semua field harus diisi" });
     }
 
@@ -38,7 +40,7 @@ export const createBooking = async (req, res) => {
       id_date,
     });
     // 🔔 Kirim notifikasi ke Inbox
-    console.log("ID Date yang diterima:", id_date); // Debug
+   logger.info("ID Date yang diterima:", id_date); // Debug
 
     await Inbox.create({
       type: "new_booking",
@@ -107,15 +109,15 @@ export const createBooking = async (req, res) => {
 
     transporter.sendMail(mailOptions, (err, info) => {
       if (err) {
-        console.error("❌ Gagal mengirim email:", err);
+        logger.error("❌ Gagal mengirim email:", err);
       } else {
-        console.log("✅ Email terkirim:", info.response);
+       logger.info("✅ Email terkirim:", info.response);
       }
     });
     res.status(201).json({ message: "✅ Booking berhasil!", booking: newBooking });
 
   } catch (error) {
-    console.error("❌ Error saat membuat booking:", error.message);
+    logger.error("❌ Error saat membuat booking:", error.message);
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };

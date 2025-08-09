@@ -35,7 +35,7 @@ const uploadGallery = multer({ storage }).fields([
 // Untuk form upload 1 gambar (card destinasi)
 const uploadSingle = multer({ storage }).single("image");
 
-// ========== ENDPOINT 1: Upload Galeri Baru ==========
+
 export const uploadGalleryImages = async (req, res) => {
   uploadGallery(req, res, async (err) => {
     if (err) return res.status(500).json({ message: "Gagal mengupload gambar", error: err.message });
@@ -63,8 +63,6 @@ export const uploadGalleryImages = async (req, res) => {
     }
   });
 };
-
-// ========== ENDPOINT 2: Update Galeri ==========
 
 export const updateGalleryImages = async (req, res) => {
   uploadGallery(req, res, async (err) => {

@@ -6,6 +6,7 @@ import upload from "../middleware/uploadimg.js";
 import fs from "fs";
 import path from "path";
 import Booking from "../models/BookingModel.js";
+import logger from "../utils/logger.js";
 
 // Get All Package  Touur
 export const getAllPackageTours = async (req, res) => {
@@ -27,7 +28,7 @@ export const createPackageTourWithGaleries = async (req, res) => {
       return res.status(400).json({ message: "Data tidak lengkap!" });
     }
 
-    console.log("📥 Data yang diterima:", req.body);
+    logger.info("📥 Data yang diterima:", req.body);
 
     // 2️⃣ Format program & fasilitas
     const programTour = Array.isArray(req.body.program_tour)
@@ -60,7 +61,7 @@ export const createPackageTourWithGaleries = async (req, res) => {
     const packageId = newPackage.id_package || newPackage.id;
     if (!packageId) return res.status(400).json({ message: "Gagal mendapatkan ID PackageTour" });
 
-    console.log("✅ ID Paket:", packageId);
+    logg("✅ ID Paket:", packageId);
 
     // 4️⃣ Buat folder galeri jika belum ada
     const galleryDir = path.join("public", `gallery_${packageId}`);
@@ -111,7 +112,7 @@ export const createPackageTourWithGaleries = async (req, res) => {
       rundown: rundownData,
     });
   } catch (error) {
-    console.error("❌ Gagal simpan:", error);
+    logger.error("❌ Gagal simpan:", error);
     res.status(500).json({ message: "Terjadi kesalahan!", error: error.message });
   }
 };
@@ -158,7 +159,7 @@ export const updatePackageTourWithGaleriesAndRundown = async (req, res) => {
     );
 
 
-    console.log("Paket tour berhasil diperbarui:", updatedPackage);
+    logg("Paket tour berhasil diperbarui:", updatedPackage);
 
     // **Update Galeri & Rundown jika ada**
     let galeriesData = [];
@@ -198,7 +199,7 @@ export const updatePackageTourWithGaleriesAndRundown = async (req, res) => {
       rundown: rundownData,
     });
   } catch (error) {
-    console.error("Error:", error);
+    logger.error("Error:", error);
     res.status(500).json({ message: "Gagal memperbarui paket tour", error: error.message });
   }
 };
@@ -257,16 +258,16 @@ export const deletePackageTour = async (req, res) => {
 
 export const getTourById = async (req, res) => {
   try {
-    console.log("ID yang diminta:", req.params.id);
+    logg("ID yang diminta:", req.params.id);
     const id = parseInt(req.params.id, 10); // pastikan jadi integer
     const tour = await PackageTour.findByPk(id);
     if (!tour) {
-      console.log("Tour tidak ditemukan");
+      logg("Tour tidak ditemukan");
       return res.status(404).json({ message: "Tour tidak ditemukan" });
     }
     res.json(tour);
   } catch (error) {
-    console.error("Error:", error);
+    logger.error("Error:", error);
     res.status(500).json({ error: "Gagal mengambil data tour" });
   }
 };
@@ -385,10 +386,10 @@ export const deleteFacilityTourByIndex = async (req, res) => {
 };
 
 export const deleteAvailableDateById = async (req, res) => {
-  const { id } = req.params;
+  const { id_date } = req.params;
 
   try {
-    const deleted = await AvailableDates.destroy({ where: { id_package: packageId } });
+    const deleted = await AvailableDates.destroy({ where: { id_date } });
     if (deleted === 0) {
       return res.status(404).json({ message: "Available date tidak ditemukan" });
     }

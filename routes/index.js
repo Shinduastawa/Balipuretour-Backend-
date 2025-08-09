@@ -1,20 +1,54 @@
 import express from "express";
 import upload from "../middleware/upload.js";
-import { getUser, Register, Login, Logout, UpdateUser, LoginGoogle, RegisterGoogle,  Verifyemail, uploadPhoto, handlePhotoUpload, verifyEmailNonfirebase } from "../controllers/User.js";
-import { LoginAdmin, RegisterAdmin, getAdminProfile, refreshTokenAdmin} from "../controllers/Admin.js";
+import logger from "../utils/logger.js";
+
+import {
+  getUser,
+  Register,
+  Login,
+  Logout,
+  UpdateUser,
+  LoginGoogle,
+  RegisterGoogle,
+  Verifyemail,
+  uploadPhoto,
+  handlePhotoUpload,
+  verifyEmailNonfirebase } from "../controllers/User.js";
+import {
+  LoginAdmin,
+  RegisterAdmin,
+  getAdminProfile,
+  refreshTokenAdmin
+} from "../controllers/Admin.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 import { verifyadmin } from "../middleware/verifyadmin.js";
 import { refreshToken } from "../controllers/RefreshToken.js";
-import { createPackageTourWithGaleries, updatePackageTourWithGaleriesAndRundown, getTourById, getTourGallery, getTourRundown, getAllPackageTours, deleteSingleGalleryImage, deleteRundown,
+import {
+  createPackageTourWithGaleries,
+  updatePackageTourWithGaleriesAndRundown,
+  getTourById,
+  getTourGallery,
+  getTourRundown,
+  getAllPackageTours,
+  deleteSingleGalleryImage,
+  deleteRundown,
   deleteProgramTourByIndex,
-  deleteFacilityTourByIndex, createRundown, updateRundown, deleteAvailableDateById } from "../controllers/PackageTour.js";
-import { createCardDestination, updateCardDestination, deleteCardDestinationWithPackageTour, getCardDestinationById  } from "../controllers/CardDestination.js";
+  deleteFacilityTourByIndex,
+  createRundown,
+  updateRundown,
+  deleteAvailableDateById
+} from "../controllers/PackageTour.js";
+import {
+  createCardDestination,
+  updateCardDestination,
+  deleteCardDestinationWithPackageTour,
+  getCardDestinationById
+} from "../controllers/CardDestination.js";
 import { getAllCardDestinations } from "../controllers/CardDestination.js";
 import { getGalleryImages } from "../controllers/CardDestination.js";
 import { uploadGalleryImages, updateGalleryImages  } from "../controllers/Galeries.js";
 import { createBooking , getUserBookings, getAllBookings, updateBookingStatusByAdmin, getBookingById, updateBookingStatus } from "../controllers/Booking.js";
 import { createPayment, paymentNotification,  getTransactionDetail, getAllTransactions, getAllPaidTransactions } from "../controllers/Payment.js";
-import { authenticateUser } from "../middleware/authenticateUser.js"; // Pastikan import
 import { getTransactionByBookingId, getLatestTransactionByUserId  } from "../controllers/Transaction.js";
 import { authRole } from "../middleware/authRole.js";
 import {
@@ -59,143 +93,95 @@ import {
 
 
 
-
-
-
-// import { refreshToken } from "../controllers/RefreshToken.js";
-
-
 const router = express.Router();
-// router.get("/token", refreshToken);
 //Admin
 router.post("/admin", LoginAdmin);
-router.get("/tokenAdmin", refreshTokenAdmin); // ✅ Tambahin ini
-router.post('/register-admin', RegisterAdmin); // Register admin
-router.get("/get-admin", verifyadmin, getAdminProfile); // ✅ Gunakan verifyadmin
+router.get("/tokenAdmin", refreshTokenAdmin);
+router.post('/register-admin', RegisterAdmin);
+router.get("/get-admin", verifyadmin, getAdminProfile);
 
 router.post('/booking-tour', verifyToken, createBooking, async (req, res) => {
-  console.log("Token diterima:", req.headers.authorization);
-  console.log("Payload booking:", req.body);2
+  logger.info("Token diterima:", req.headers.authorization);
+  logger.info("Payload booking:", req.body);2
 });
 router.get("/getUserBooking", verifyToken, getUserBookings);
 router.post("/create-payment", createPayment);
 router.post("/midtrans-notification", paymentNotification);
 router.get("/transaction/:order_id", getTransactionDetail); // ✅ Route untuk ambil detail transaksi
-
 router.get("/transactions/paid", getAllPaidTransactions);
-
-
 router.get("/getAllBookings", getAllBookings)
-
 router.put("/booking/:id", updateBookingStatus);
-
 router.put("/admin/updateBookingStatus/:id", updateBookingStatusByAdmin);
-
 router.get("/transaction/booking/:id_booking", getTransactionByBookingId);
-
 router.get("/booking/:id_booking", getBookingById);
-
 router.get("/transaction/user/:userId", getLatestTransactionByUserId);
-
-
 router.get("/packages/available-dates", getAllPackagesWithDates);
 router.get('/transactions/today', getTodayTransactions);
 router.get('/revenue/today', getTodayRevenue);
 router.get('/bookings/today', getTodayBookings);
-
-
 router.get("/transactions/total", getTotalTransactions);
 router.get("/users/total", getTotalUsers);
 router.get("/revenue/total", getTotalRevenue);
 router.get("/packages/active", getActivePackageTours);
 router.get("/bookings/recent", getRecentBookings);
-
 router.post("/inbox", addNotification);
 router.get("/inbox", getNotifications);
 router.patch("/inbox/:id/read", markAsRead);
 router.delete("/inbox/:id", deleteInbox);
 
-router.post("/invoices", createInvoice); // Membuat Invoice
-router.get("/invoices", getAllInvoices); // Mengambil Semua Invoice
-router.get("/invoices/:id", getInvoiceById); // Mengambil Invoice berdasarkan ID
-router.put("/invoices/:id", updateInvoice); // Memperbarui Invoice
-router.delete("/invoices/:id", deleteInvoice); // Menghapus Invoic
+// invoice
+router.post("/invoices", createInvoice);
+router.get("/invoices", getAllInvoices);
+router.get("/invoices/:id", getInvoiceById);
+router.put("/invoices/:id", updateInvoice);
+router.delete("/invoices/:id", deleteInvoice);
 
-router.delete("/gallery/:id", deleteSingleGalleryImage);
 
-// 🔹 GET semua tanggal yang tersedia
+// Avlible Date
 router.get("/available-dates", getAllAvailableDates);
-
-// 🔹 GET tanggal tersedia berdasarkan `id_package`
 router.get("/available-dates/:id_package", getAvailableDatesByPackage);
-
-// 🔹 GET tanggal tersedia berdasarkan `id_package`
 router.get("/available-slot/:id_package", getAvailableDatesSlot);
-
-// 🔹 POST tambah tanggal baru
 router.post("/available-dates", addAvailableDate);
-
 router.put("/available-dates-update", updateAvailableDates);
-
-router.get("/booked-dates", getBookedDates);
-
-
-// 🔹 DELETE hapus tanggal berdasarkan `id_date`
 router.delete("/available-dates/:id_date", deleteAvailableDate);
-
-// untuk status update avlible
+router.delete("/available-dates/:id_date", deleteAvailableDateById);
+router.get("/booked-dates", getBookedDates);
 router.post("/book-date", verifyToken, bookDate)
 
+// Rundwon
 router.delete("/tour/rundown/:id", deleteRundown);
-router.delete("/tour/:id_package/program/:index", deleteProgramTourByIndex);
-router.delete("/tour/:id_package/facility/:index", deleteFacilityTourByIndex);
 router.post("/tour/rundown", createRundown);
 router.put("/tour/rundown/:id", updateRundown);
+router.get("/tour/rundown/:id", getTourRundown);
+
+// Program & Facility
+router.delete("/tour/:id_package/program/:index", deleteProgramTourByIndex);
+router.delete("/tour/:id_package/facility/:index", deleteFacilityTourByIndex);
+
 
 router.get("/getAllTransactions",  getAllTransactions);
 
-// Get paket-tour
+// Package Tour
 router.get("/get-packages", getAllPackageTours)
-
-// kelola paket tour
 router.post("/package-tour", upload.array("galeries", 10), createPackageTourWithGaleries);
-
-
-// update paket tour
 router.put("/package-tour-update/:id_package", updatePackageTourWithGaleriesAndRundown);
+router.get("/package-tour/:id", getTourById);
 
 // kelola card tour
 router.post("/card-tour", createCardDestination);
-// update card tour
 router.put("/card-destination-update/:id", updateCardDestination);
-
-// Route untuk fetch data
 router.get("/get-card-destinations", getAllCardDestinations);
-
-// Get Crad Destination By id
 router.get("/get-card-destination/:id", getCardDestinationById);
-
-// Route untuk mengambil gambar galeri
-router.get("/get-gallery-images", getGalleryImages);
-
-// Route Update gambar
-router.post("/upload-gallery",   uploadGalleryImages);
-
-// Route Update gambar
-router.put("/update-gallery/:id_package", updateGalleryImages); // Perhatikan nama parameternya
-
-// Dalate Card Tour dan Package Tour
 router.delete('/card-destination-dalate/:id', deleteCardDestinationWithPackageTour);
 
-// Dalate Date Avlible
-router.delete("/available-dates/:id_date", deleteAvailableDateById);
-// get data paket tour
-
-router.get("/package-tour/:id", getTourById);
+// Route untuk mengambil gambar galeri
+router.delete("/gallery/:id", deleteSingleGalleryImage);
+router.get("/get-gallery-images", getGalleryImages);
+router.post("/upload-gallery",   uploadGalleryImages);
+router.put("/update-gallery/:id_package", updateGalleryImages);
 router.get("/tour/gallery/:id", getTourGallery);
-router.get("/tour/rundown/:id", getTourRundown);
 
-
+// get data paket tour
 router.get('/user', verifyToken, getUser);
 router.post('/user-register', Register);
 router.post('/login', Login);

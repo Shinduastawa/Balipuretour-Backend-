@@ -1,6 +1,7 @@
 import User from "../models/UserModel.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import logger from "../utils/logger.js";
 
 dotenv.config();
 
@@ -23,7 +24,7 @@ export const refreshToken = async (req, res) => {
     // Verifikasi refresh token
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
       if (err) {
-        console.error("JWT verification error:", err.message);
+        logger.error("JWT verification error:", err.message);
         return res.sendStatus(403); // Forbidden
       }
 
@@ -41,7 +42,7 @@ export const refreshToken = async (req, res) => {
       res.json({ accessToken }); // Kirim token baru
     });
   } catch (error) {
-    console.error("Unexpected error:", error);
+    logger.error("Unexpected error:", error);
     res.sendStatus(500); // Internal Server Error
   }
 };

@@ -5,6 +5,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { fileURLToPath } from 'url';
 import { uploadPDFToCloudinary } from '../config/uploadToCloudinary.js';
+import logger from "../utils/logger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -116,11 +117,11 @@ export const generateInvoicePDF = async (transaction) => {
   const invoicePath = path.join(invoiceDir, `invoice.pdf`);
   fs.writeFileSync(invoicePath, Buffer.from(doc.output('arraybuffer')));
 
-  console.log(`📄 Invoice disimpan di: ${invoicePath}`);
+  logger.info(`📄 Invoice disimpan di: ${invoicePath}`);
 
   // Upload ke Cloudinary (opsional)
   const cloudinaryUrl = await uploadPDFToCloudinary(invoicePath);
-  console.log(`☁️ PDF uploaded to Cloudinary: ${cloudinaryUrl}`);
+  logger.info(`☁️ PDF uploaded to Cloudinary: ${cloudinaryUrl}`);
 
   return { localPath: invoicePath, cloudinaryUrl };
 };
@@ -154,5 +155,5 @@ export const sendInvoiceEmail = async (to, name, localPath) => {
   };
 
   await transporter.sendMail(mailOptions);
-  console.log(`📬 Invoice email sent to ${to} with attachment`);
+  logger.info(`📬 Invoice email sent to ${to} with attachment`);
 };

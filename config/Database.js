@@ -24,11 +24,13 @@
 // export default db;
 
 import dotenv from "dotenv";
+import logger from "../utils/logger.js";
+
 dotenv.config();
 
 import { Sequelize } from "sequelize";
 
-console.log("📦 DB CONFIG:", {
+logger.info("📦 DB CONFIG:", {
   DB_NAME: process.env.DB_NAME,
   DB_USER: process.env.DB_USER,
   DB_PASSWORD: process.env.DB_PASSWORD,
@@ -49,5 +51,3 @@ const db = new Sequelize(
 );
 
 export default db;
-
-

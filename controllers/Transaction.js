@@ -1,5 +1,6 @@
 import Booking from "../models/BookingModel.js";
 import Transaction from "../models/TransactionModel.js";
+import logger from "../utils/logger.js";
 
 export const getTransactionByBookingId = async (req, res) => {
   try {
@@ -13,7 +14,7 @@ export const getTransactionByBookingId = async (req, res) => {
 
     res.status(200).json({ data: transaction });
   } catch (error) {
-    console.error("❌ Error fetching transaction:", error);
+    logger.error ("❌ Error fetching transaction:", error);
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
@@ -50,7 +51,7 @@ export const getLatestTransactionByUserId = async (req, res) => {
 
     res.status(200).json({ data: transaction });
   } catch (error) {
-    console.error("❌ Error fetching transaction:", error);
+    ("❌ Error fetching transaction:", error);
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };

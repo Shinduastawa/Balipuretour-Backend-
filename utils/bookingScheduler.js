@@ -3,6 +3,7 @@ import Booking from "../models/BookingModel.js";  // Model booking
 import Inbox from "../models/InboxModel.js";    // Model inbox
 import AvailableDates from "../models/AvailableDatesModel.js"; // Model availabledates
 import { Op } from "sequelize";
+import logger from "./logger.js";
 
 // ⏰ Jalan setiap 5 menit sekali
 cron.schedule("*/5 * * * *", async () => {
@@ -20,7 +21,7 @@ cron.schedule("*/5 * * * *", async () => {
     });
 
     if (bookings.length > 0) {
-      console.log(`⏳ Ada ${bookings.length} booking pending yang akan dibatalkan.`);
+      logger.info(`⏳ Ada ${bookings.length} booking pending yang akan dibatalkan.`);
 
       for (const booking of bookings) {
         // 🔁 Ubah status available_date jadi available lagi jika booking dibatalkan
@@ -35,7 +36,7 @@ cron.schedule("*/5 * * * *", async () => {
               },
             }
           );
-          console.log(`✅ Updated available_date for booking ID ${booking.id_booking}`);
+          logger.info(`✅ Updated available_date for booking ID ${booking.id_booking}`);
         }
 
         // ❌ Batalkan booking jika sudah lebih dari 1 jam dan statusnya pending
@@ -48,12 +49,12 @@ cron.schedule("*/5 * * * *", async () => {
           message: `Booking atas nama ${booking.full_name} otomatis dibatalkan karena tidak dibayar dalam 1 jam.`,
         });
 
-        console.log(`❌ Booking ID ${booking.id_booking} dibatalkan.`);
+        logger.info(`❌ Booking ID ${booking.id_booking} dibatalkan.`);
       }
     } else {
-      console.log("✅ Tidak ada booking yang perlu dibatalkan.");
+      logger.info("✅ Tidak ada booking yang perlu dibatalkan.");
     }
   } catch (error) {
-    console.error("🔥 Gagal menjalankan scheduler auto-cancel:", error.message);
+    logger.error("🔥 Gagal menjalankan scheduler auto-cancel:", error.message);
   }
 });

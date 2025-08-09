@@ -6,7 +6,8 @@ import Booking from "../models/BookingModel.js";
 import fs from "fs";
 import multer from "multer";
 import path from "path";
-import { Op } from "sequelize"; // ⬅️ Jangan lupa ini!
+import { Op } from "sequelize";
+import logger from "../utils/logger.js";
 
 export const createCardDestination = async (req, res) => {
   upload(req, res, async (err) => {
@@ -19,8 +20,8 @@ export const createCardDestination = async (req, res) => {
       const packageName = rawName.trim();
       const id_package = req.body.id_package || req.query.id_package;
 
-      console.log("package_name yang diterima:", `"${packageName}"`);
-      console.log("id_package yang diterima:", id_package);
+      logger.info("package_name yang diterima:", `"${packageName}"`);
+      logger.info("id_package yang diterima:", id_package);
 
       let packageTour = null;
 
@@ -54,8 +55,8 @@ export const createCardDestination = async (req, res) => {
       if (!packageTour) {
         // Debug bantu developer lihat apa aja yang ada
         const allPackages = await PackageTour.findAll();
-        console.log("Semua nama package:");
-        allPackages.forEach(p => console.log(`- "${p.package_name}"`));
+        logger.info("Semua nama package:");
+        allPackages.forEach(p => logger.info(`- "${p.package_name}"`));
 
         return res.status(404).json({ message: "PackageTour tidak ditemukan", packageName });
       }
@@ -77,7 +78,7 @@ export const createCardDestination = async (req, res) => {
       res.status(201).json({ message: "Card destination berhasil disimpan", data: newCard });
 
     } catch (error) {
-      console.error("Error createCardDestination:", error);
+      logger.error("Error createCardDestination:", error);
       res.status(400).json({ message: "Gagal menyimpan card destination", error: error.message });
     }
   });

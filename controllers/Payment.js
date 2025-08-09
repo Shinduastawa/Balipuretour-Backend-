@@ -5,6 +5,7 @@ import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js";
 import Transaction from "../models/TransactionModel.js";
 import { sendInvoiceEmail, generateInvoicePDF } from "../services/sendInvoiceEmail.js";
+import logger from "../utils/logger.js";
 
 dotenv.config();
 
@@ -18,7 +19,7 @@ const snap = new midtransClient.Snap({
 
 export const createPayment = async (req, res) => {
   try {
-    console.log("📥 Data yang diterima dari frontend:", req.body);
+    logger.info("📥 Data yang diterima dari frontend:", req.body);
 
     const {
       id_booking,
@@ -63,7 +64,7 @@ export const createPayment = async (req, res) => {
 
     // 🕒 Format start_time (Midtrans minta dalam format "YYYY-MM-DD HH:mm:ss Z")
     const start_time = dayjs().tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm:ss Z");
-    console.log("🕒 Expiry Start Time:", start_time);
+    logger.info("🕒 Expiry Start Time:", start_time);
 
     // 📦 Parameter Midtrans
     const parameter = {
@@ -86,15 +87,15 @@ export const createPayment = async (req, res) => {
 
     // 🔁 Request ke Midtrans
     const transaction = await snap.createTransaction(parameter);
-    console.log("✅ Transaction Token:", transaction.token);
+    logger.info("✅ Transaction Token:", transaction.token);
 
     res.json({ token: transaction.token });
   } catch (error) {
-    console.error("❌ Error di Backend:", error);
+    logger.error("❌ Error di Backend:", error);
 
     // 💥 Jika error dari Midtrans
     if (error.response && error.response.data) {
-      console.error("❌ Midtrans Error Response:", error.response.data);
+      ("❌ Midtrans Error Response:", error.response.data);
     }
 
     res.status(500).json({
@@ -109,7 +110,7 @@ export const createPayment = async (req, res) => {
 
 export const paymentNotification = async (req, res) => {
   try {
-    console.log("📌 Notifikasi Midtrans Diterima:", req.body);
+    logger.info("📌 Notifikasi Midtrans Diterima:", req.body);
 
     const { order_id, transaction_status, va_numbers, payment_type } = req.body;
 
@@ -130,8 +131,8 @@ export const paymentNotification = async (req, res) => {
       payment_method = payment_type.toUpperCase(); // Misal: "GOPAY", "SHOPEEPAY"
     }
 
-    console.log("💰 Metode Pembayaran:", payment_method);
-    console.log("📌 Nomor VA:", payment_numbers);
+    logger.info("💰 Metode Pembayaran:", payment_method);
+    logger.info("📌 Nomor VA:", payment_numbers);
 
     if (transaction_status === "settlement" || transaction_status === "capture") {
       payment_status = "paid";
@@ -143,7 +144,7 @@ export const paymentNotification = async (req, res) => {
     const transaction = await Transaction.findOne({ where: { order_id } });
 
     if (!transaction) {
-      console.log(`⚠️ Tidak ada transaksi dengan Order ID ${order_id} ditemukan.`);
+      logger.info(`⚠️ Tidak ada transaksi dengan Order ID ${order_id} ditemukan.`);
       return res.status(404).json({ message: "Transaction not found" });
     }
 
@@ -163,7 +164,7 @@ export const paymentNotification = async (req, res) => {
       { where: { order_id } }
     );
 
-    console.log(`✅ Status pembayaran ${order_id} diupdate jadi ${payment_status}, metode: ${payment_method}`);
+    logger.info(`✅ Status pembayaran ${order_id} diupdate jadi ${payment_status}, metode: ${payment_method}`);
 
     // 🔥 Kirim Invoice jika Paid
     // 🔥 Kirim Invoice jika Paid
@@ -181,16 +182,16 @@ export const paymentNotification = async (req, res) => {
           localPath
         );
 
-        console.log("✅ Invoice berhasil dikirim ke email:", updatedTransaction.email);
+        logger.info("✅ Invoice berhasil dikirim ke email:", updatedTransaction.email);
       } catch (err) {
-        console.error("❌ Gagal kirim invoice:", err.message);
+        ("❌ Gagal kirim invoice:", err.message);
       }
     }
 
 
     res.json({ message: "Payment status updated", status: payment_status });
   } catch (error) {
-    console.error("❌ Error updating payment status:", error.message);
+    ("❌ Error updating payment status:", error.message);
     res.status(500).json({ message: "Failed to update payment status", error: error.message });
   }
 };
@@ -228,19 +229,18 @@ export const getTransactionDetail = async (req, res) => {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
-    // ✅ **Pastikan payment_numbers diparse ke JSON**
     let payment_numbers = [];
     if (transaction.payment_numbers) {
       try {
         payment_numbers = JSON.parse(transaction.payment_numbers);
       } catch (error) {
-        console.error("❌ Error parsing payment_numbers:", error.message);
+        ("❌ Error parsing payment_numbers:", error.message);
       }
     }
 
-    res.json({ ...transaction.toJSON(), payment_numbers }); // Kirim hasil parsing
+    res.json({ ...transaction.toJSON(), payment_numbers });
   } catch (error) {
-    console.error("❌ Error fetching transaction:", error.message);
+    ("❌ Error fetching transaction:", error.message);
     res.status(500).json({ message: "Failed to fetch transaction", error: error.message });
   }
 };
@@ -257,12 +257,12 @@ export const getAllTransactions = async (req, res) => {
         "payment_method",
         "payment_status",
       ],
-      order: [["transaction_date", "DESC"]], // Urutkan transaksi dari terbaru
+      order: [["transaction_date", "DESC"]],
     });
 
     res.json(transactions);
   } catch (error) {
-    console.error("❌ Error fetching transactions:", error.message);
+    ("❌ Error fetching transactions:", error.message);
     res.status(500).json({ message: "Failed to fetch transactions", error: error.message });
   }
 };
@@ -270,7 +270,7 @@ export const getAllTransactions = async (req, res) => {
 export const getAllPaidTransactions = async (req, res) => {
   try {
     const transactions = await Transaction.findAll({
-      where: { payment_status: "paid" }, // ✅ Filter hanya transaksi yang paid
+      where: { payment_status: "paid" },
       attributes: [
         "id_transaction",
         "order_id",
@@ -285,7 +285,7 @@ export const getAllPaidTransactions = async (req, res) => {
 
     res.json(transactions);
   } catch (error) {
-    console.error("❌ Error fetching paid transactions:", error.message);
+    ("❌ Error fetching paid transactions:", error.message);
     res.status(500).json({
       message: "Failed to fetch paid transactions",
       error: error.message,

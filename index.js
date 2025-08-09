@@ -12,7 +12,7 @@ import fs from "fs";
 import multer from "multer";
 import { fileURLToPath } from "url";
 import CardDestinationModel from "./models/CardDestinationModel.js";
-import logger from "./utils/logger.js"; 
+import logger from "./utils/logger.js";
 
 
 
@@ -28,7 +28,7 @@ admin
   .auth()
   .listUsers(1)
   .then(() => logger.info("Firebase Admin SDK terhubung"))
-  .catch((error) => console.error("Firebase Admin SDK error:", error));
+  .catch((error) => logger.error("Firebase Admin SDK error:", error));
 
 const app = express();
 
@@ -50,7 +50,7 @@ try {
   await CardDestinationModel.sync({ alter: true }); // Sync dengan perubahan struktur
   logger.info("CardDestinationModel table updated!");
 } catch (error) {
-  console.error("Error updating database:", error);
+  logger.error("Error updating database:", error);
 }
 
 // Middleware setup
@@ -103,7 +103,7 @@ try {
 
   logger.info("✅ AvailableDates table is synced.");
 } catch (error) {
-  console.error("❌ Database connection error:", error);
+  logger.error("❌ Database connection error:", error);
 }
 
 // Jalankan server pada port yang ditentukan (default: 5000)

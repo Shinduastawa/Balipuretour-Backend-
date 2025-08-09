@@ -2,6 +2,7 @@ import AvailableDates from "../models/AvailableDatesModel.js";
 import PackageTour from "../models/PackgeTourModel.js";
 import Inbox from "../models/InboxModel.js";
 import db from "../config/Database.js";
+import logger from "../utils/logger.js";
 
 // ✅ Get All Available Dates (Semua tanggal tersedia)
 export const getAllAvailableDates = async (req, res) => {
@@ -165,7 +166,7 @@ export const bookDate = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("❌ Gagal booking:", error);
+    logger.error("❌ Gagal booking:", error);
     await t.rollback();
     return res.status(500).json({ message: "Terjadi kesalahan saat booking." });
   }
@@ -214,7 +215,7 @@ export const getBookedDates = async (req, res) => {
     // Kirim data tanggal yang sudah dibooking
     res.status(200).json(bookedDates);
   } catch (error) {
-    console.error("❌ Error fetching booked dates:", error);
+    logger.error("❌ Error fetching booked dates:", error);
     res.status(500).json({ message: "Terjadi kesalahan saat mengambil tanggal yang dibooking." });
   }
 };

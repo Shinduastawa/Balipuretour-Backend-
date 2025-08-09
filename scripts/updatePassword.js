@@ -1,5 +1,6 @@
 import Admin from '../models/AdminModel.js';  // Impor default, bukan dengan nama `admin`
 import bcryptjs from "bcryptjs";
+import logger from "../utils/logger.js";
 
 const updatePasswordHash = async () => {
   const admin = await Admin.findOne({ where: { email: 'AdminPTbalipure@gmail.com' } }); // Sesuaikan username admin
@@ -11,9 +12,9 @@ const updatePasswordHash = async () => {
 
     // Update password yang sudah di-hash ke database
     await Admin.update({ password: hashedPassword }, { where: { email: 'AdminPTbalipure@gmail.com' } });
-    console.log("Password berhasil di-hash dan diperbarui.");
+    logger.info("Password berhasil di-hash dan diperbarui.");
   } else {
-    console.log("Admin tidak ditemukan.");
+    logger.info("Admin tidak ditemukan.");
   }
 };
 

@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js"; // ✅ Tambahkan ini
 import { Op } from "sequelize";
+import logger from "../utils/logger.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -18,7 +19,7 @@ export const getTotalTransactions = async (req, res) => {
     const totalTransactions = await Transaction.count();
     res.status(200).json({ totalTransactions });
   } catch (error) {
-    console.error("❌ Error fetching total transactions:", error);
+    logger.error("❌ Error fetching total transactions:", error);
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
@@ -29,7 +30,7 @@ export const getTotalUsers = async (req, res) => {
     const totalUsers = await User.count();
     res.status(200).json({ totalUsers });
   } catch (error) {
-    console.error("❌ Error fetching total users:", error);
+    logger.error("❌ Error fetching total users:", error);
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
@@ -43,7 +44,7 @@ export const getTotalRevenue = async (req, res) => {
 
     res.status(200).json({ totalRevenue: totalRevenue || 0 });
   } catch (error) {
-    console.error("❌ Error fetching total revenue:", error);
+    logger.error("❌ Error fetching total revenue:", error);
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
@@ -55,7 +56,7 @@ export const getActivePackageTours = async (req, res) => {
     const activePackages = await PackageTour.count();
     res.status(200).json({ activePackages });
   } catch (error) {
-    console.error("❌ Error fetching active package tours:", error);
+    logger.error("❌ Error fetching active package tours:", error);
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
@@ -71,7 +72,7 @@ export const getRecentBookings = async (req, res) => {
 
     res.status(200).json({ recentBookings });
   } catch (error) {
-    console.error("❌ Error fetching recent bookings:", error);
+    logger.error("❌ Error fetching recent bookings:", error);
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
@@ -85,7 +86,7 @@ export const getRecentBookings = async (req, res) => {
 
 //     res.status(200).json({ success: true, data: packages });
 //   } catch (error) {
-//     console.error("❌ Error fetching all packages:", error);
+//     logger.error("❌ Error fetching all packages:", error);
 //     res.status(500).json({ success: false, message: "Terjadi kesalahan", error: error.message });
 //   }
 // };
@@ -102,7 +103,7 @@ export const getTransactionByBookingId = async (req, res) => {
 
     res.status(200).json({ data: transaction });
   } catch (error) {
-    console.error("❌ Error fetching transaction:", error);
+    logger.error("❌ Error fetching transaction:", error);
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
@@ -124,7 +125,7 @@ export const getAllPackagesWithDates = async (req, res) => {
 
     res.status(200).json({ success: true, data: packages });
   } catch (error) {
-    console.error("❌ Error fetching packages with available dates:", error);
+    logger.error("❌ Error fetching packages with available dates:", error);
     res.status(500).json({ success: false, message: "Terjadi kesalahan", error: error.message });
   }
 };
@@ -143,7 +144,7 @@ export const getTodayTransactions = async (req, res) => {
 
     res.status(200).json({ todayTransactions: count });
   } catch (error) {
-    console.error("❌ Error fetching today transactions:", error);
+    logger.error("❌ Error fetching today transactions:", error);
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
@@ -163,7 +164,7 @@ export const getTodayRevenue = async (req, res) => {
 
     res.status(200).json({ todayRevenue: totalRevenue || 0 });
   } catch (error) {
-    console.error("❌ Error fetching today revenue:", error);
+    logger.error("❌ Error fetching today revenue:", error);
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
@@ -182,7 +183,7 @@ export const getTodayBookings = async (req, res) => {
 
     res.status(200).json({ todayBookings: count });
   } catch (error) {
-    console.error("❌ Error fetching today bookings:", error);
+    logger.error("❌ Error fetching today bookings:", error);
     res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };

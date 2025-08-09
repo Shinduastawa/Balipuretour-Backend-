@@ -4,6 +4,7 @@ import Transaction from '../models/TransactionModel.js';
 import Booking from '../models/BookingModel.js';
 import dotenv from 'dotenv'; // Import dotenv untuk mengatur variabel lingkungan
 dotenv.config(); // Memuat variabel lingkungan dari file .env
+import logger from "../utils/logger.js";
 
 // **📌 Membuat Invoice Baru dan Mengirim Email Konfirmasi**
 export const createInvoice = async (req, res) => {
@@ -48,9 +49,9 @@ export const createInvoice = async (req, res) => {
 
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        console.log("❌ Email failed to send:", error);
+       logger.info("❌ Email failed to send:", error);
       } else {
-        console.log("✅ Email sent:", info.response);
+       logger.info("✅ Email sent:", info.response);
       }
     });
 
@@ -59,7 +60,7 @@ export const createInvoice = async (req, res) => {
       data: newInvoice,
     });
   } catch (error) {
-    console.error("❌ Error creating invoice:", error);
+   logger.error("❌ Error creating invoice:", error);
     return res.status(500).json({
       message: "Terjadi kesalahan saat membuat invoice dan mengirim email",
       error: error.message,
@@ -82,7 +83,7 @@ export const getAllInvoices = async (req, res) => {
       data: invoices,
     });
   } catch (error) {
-    console.error(error);
+   logger.error(error);
     return res.status(500).json({
       message: "Terjadi kesalahan saat mengambil data invoice",
       error: error.message,
@@ -114,7 +115,7 @@ export const getInvoiceById = async (req, res) => {
       data: invoice,
     });
   } catch (error) {
-    console.error(error);
+   logger.error(error);
     return res.status(500).json({
       message: "Terjadi kesalahan saat mengambil data invoice",
       error: error.message,
@@ -151,7 +152,7 @@ export const updateInvoice = async (req, res) => {
       data: invoice,
     });
   } catch (error) {
-    console.error(error);
+   logger.error(error);
     return res.status(500).json({
       message: "Terjadi kesalahan saat memperbarui invoice",
       error: error.message,
@@ -178,7 +179,7 @@ export const deleteInvoice = async (req, res) => {
       message: "Invoice berhasil dihapus",
     });
   } catch (error) {
-    console.error(error);
+   logger.error(error);
     return res.status(500).json({
       message: "Terjadi kesalahan saat menghapus invoice",
       error: error.message,
