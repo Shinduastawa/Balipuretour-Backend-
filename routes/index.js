@@ -202,4 +202,17 @@ router.get("/verifyEmailNonfirebase", verifyEmailNonfirebase);
 router.get("/user", authRole(["user"]), (req, res) => {
   res.json({ msg: "Halo User!" });
 });
+
+router.post("/log-client-error", (req, res) => {
+  const { message, source, line, col, stack } = req.body;
+
+  logger.error("==== Frontend Error ====");
+  logger.error(`Message: ${message}`);
+  logger.error(`Source: ${source || "N/A"}`);
+  logger.error(`Line: ${line || "N/A"}, Column: ${col || "N/A"}`);
+  if (stack) logger.error(`Stack Trace: ${stack}`);
+  logger.error("========================");
+
+  res.status(200).json({ message: "Error logged successfully" });
+});
 export default router
