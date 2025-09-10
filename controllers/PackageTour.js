@@ -59,9 +59,12 @@ export const createPackageTourWithGaleries = async (req, res) => {
     });
 
     const packageId = newPackage.id_package || newPackage.id;
-    if (!packageId) return res.status(400).json({ message: "Gagal mendapatkan ID PackageTour" });
+    if (!packageId) {
+      return res.status(400).json({ message: "Gagal mendapatkan ID PackageTour" });
+    }
 
-    logg("✅ ID Paket:", packageId);
+    logger.info("✅ ID Paket:", packageId);
+
 
     // 4️⃣ Buat folder galeri jika belum ada
     const galleryDir = path.join("public", `gallery_${packageId}`);
@@ -159,7 +162,7 @@ export const updatePackageTourWithGaleriesAndRundown = async (req, res) => {
     );
 
 
-    logg("Paket tour berhasil diperbarui:", updatedPackage);
+    logger("Paket tour berhasil diperbarui:", updatedPackage);
 
     // **Update Galeri & Rundown jika ada**
     let galeriesData = [];
@@ -258,11 +261,11 @@ export const deletePackageTour = async (req, res) => {
 
 export const getTourById = async (req, res) => {
   try {
-    logg("ID yang diminta:", req.params.id);
+    logger("ID yang diminta:", req.params.id);
     const id = parseInt(req.params.id, 10); // pastikan jadi integer
     const tour = await PackageTour.findByPk(id);
     if (!tour) {
-      logg("Tour tidak ditemukan");
+      logger("Tour tidak ditemukan");
       return res.status(404).json({ message: "Tour tidak ditemukan" });
     }
     res.json(tour);
