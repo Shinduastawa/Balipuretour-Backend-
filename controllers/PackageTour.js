@@ -261,19 +261,24 @@ export const deletePackageTour = async (req, res) => {
 
 export const getTourById = async (req, res) => {
   try {
-    logger("ID yang diminta:", req.params.id);
-    const id = parseInt(req.params.id, 10); // pastikan jadi integer
-    const tour = await PackageTour.findByPk(id);
+    const id = parseInt(req.params.id, 10);
+
+    const tour = await PackageTour.findOne({
+      where: { id_package: id },
+      include: [{ model: Galeries, as: "Galeries" }]
+    });
+
     if (!tour) {
-      logger("Tour tidak ditemukan");
       return res.status(404).json({ message: "Tour tidak ditemukan" });
     }
+
     res.json(tour);
   } catch (error) {
-    logger.error("Error:", error);
-    res.status(500).json({ error: "Gagal mengambil data tour" });
+    console.error("❌ Error GET Tour by ID:", error);
+    res.status(500).json({ error: "Gagal mengambil data tour", detail: error.message });
   }
 };
+
 
 export const getTourGallery = async (req, res) => {
   try {
