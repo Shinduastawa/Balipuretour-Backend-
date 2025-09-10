@@ -127,7 +127,7 @@ export const createPackageTourWithGaleries = async (req, res) => {
 
 export const updatePackageTourWithGaleriesAndRundown = async (req, res) => {
   try {
-    const packageId = req.params.id_package; // Pastikan ini dideklarasikan pertama
+    const packageId = req.params.id_package;
     if (!packageId) {
       return res.status(400).json({ message: "Gagal mendapatkan ID PackageTour" });
     }
@@ -145,7 +145,8 @@ export const updatePackageTourWithGaleriesAndRundown = async (req, res) => {
       ? req.body.facility_tour.join(". ")
       : req.body.facility_tour || "";
 
-    const updatedPackage = await PackageTour.update(
+    // Update package utama
+    await PackageTour.update(
       {
         package_name: req.body.package_name,
         about_package: req.body.about_package,
@@ -155,24 +156,31 @@ export const updatePackageTourWithGaleriesAndRundown = async (req, res) => {
         price_usd_11_15_person: req.body.price_usd_11_15_person,
         price_usd_16_20_person: req.body.price_usd_16_20_person,
         price_usd_21_person_up: req.body.price_usd_21_person_up,
+        price_idr_2_5_person: req.body.price_idr_2_5_person,
+        price_idr_6_10_person: req.body.price_idr_6_10_person,
+        price_idr_11_15_person: req.body.price_idr_11_15_person,
+        price_idr_16_20_person: req.body.price_idr_16_20_person,
+        price_idr_21_person_up: req.body.price_idr_21_person_up,
         facility_tour: facilityTour,
         contact_pt: req.body.contact_pt,
       },
       { where: { id_package: packageId } }
     );
 
+    // Ambil data terbaru
+    const updatedPackage = await PackageTour.findByPk(packageId);
 
-    logger("Paket tour berhasil diperbarui:", updatedPackage);
-
-    // **Update Galeri & Rundown jika ada**
+    // **Update Galeri jika ada**
     let galeriesData = [];
     if (Array.isArray(req.body.Galeries) && req.body.Galeries.length > 0) {
       if (req.body.Galeries.length > 10) {
         return res.status(400).json({ message: "Maksimal hanya bisa mengupload 10 gambar!" });
       }
 
+      // Hapus galeri lama
       await Galeries.destroy({ where: { id_package: packageId } });
 
+      // Buat galeri baru
       galeriesData = req.body.Galeries.map((gallery) => ({
         id_package: packageId,
         img: gallery.image_url,
@@ -181,10 +189,13 @@ export const updatePackageTourWithGaleriesAndRundown = async (req, res) => {
       await Galeries.bulkCreate(galeriesData);
     }
 
+    // **Update Rundown jika ada**
     let rundownData = [];
     if (Array.isArray(req.body.Rundown) && req.body.Rundown.length > 0) {
+      // Hapus rundown lama
       await Rundown.destroy({ where: { id_package: packageId } });
 
+      // Tambah rundown baru
       rundownData = req.body.Rundown.map((rundown) => ({
         id_package: packageId,
         day: rundown.day,
@@ -202,10 +213,11 @@ export const updatePackageTourWithGaleriesAndRundown = async (req, res) => {
       rundown: rundownData,
     });
   } catch (error) {
-    logger.error("Error:", error);
+    console.error("❌ Error update tour:", error);
     res.status(500).json({ message: "Gagal memperbarui paket tour", error: error.message });
   }
 };
+
 
 // Hapus satu gambar galeri berdasarkan ID
 export const deleteSingleGalleryImage = async (req, res) => {
