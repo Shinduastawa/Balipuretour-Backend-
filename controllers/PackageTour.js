@@ -265,7 +265,7 @@ export const getTourById = async (req, res) => {
 
     const tour = await PackageTour.findOne({
       where: { id_package: id },
-      include: [{ model: Galeries, as: "Galeries" }]
+      // include: [{ model: Galeries, as: "Galeries" }]
     });
 
     if (!tour) {
